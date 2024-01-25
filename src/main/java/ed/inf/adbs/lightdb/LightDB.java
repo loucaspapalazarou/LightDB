@@ -35,7 +35,7 @@ public class LightDB {
 	public static void parsingExample(String filename) {
 		try {
 			Statement statement = CCJSqlParserUtil.parse(new FileReader(filename));
-//            Statement statement = CCJSqlParserUtil.parse("SELECT * FROM Boats");
+			// Statement statement = CCJSqlParserUtil.parse("SELECT * FROM Boats");
 			if (statement != null) {
 				System.out.println("Read statement: " + statement);
 				Select select = (Select) statement;

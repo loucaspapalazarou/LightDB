@@ -22,6 +22,9 @@ public class LightDB {
 		String inputFile = args[1];
 		String outputFile = args[2];
 
+		System.out.println(databaseDir);
+		System.out.println(outputFile);
+
 		// Just for demonstration, replace this function call with your logic
 		parsingExample(inputFile);
 	}
@@ -39,7 +42,7 @@ public class LightDB {
 			if (statement != null) {
 				System.out.println("Read statement: " + statement);
 				Select select = (Select) statement;
-				System.out.println("Select body is " + select.getSelectBody());
+				System.out.println("Select body is " + select);
 			}
 		} catch (Exception e) {
 			System.err.println("Exception occurred during parsing");

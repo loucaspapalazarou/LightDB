@@ -13,5 +13,9 @@ and run using
 ```
 java -jar target/lightdb-1.0.0-jar-with-dependencies.jar samples/db samples/input/query1.sql samples/output/query1.csv
 ```
+or using the scripts
+```
+./build && ./run
+```
 
 #### more docs to come...

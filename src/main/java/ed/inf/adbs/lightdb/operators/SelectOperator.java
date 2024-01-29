@@ -1,15 +1,24 @@
 package ed.inf.adbs.lightdb.operators;
 
+import ed.inf.adbs.lightdb.evaluators.ExpressionEvaluator;
 import ed.inf.adbs.lightdb.types.Tuple;
+import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
+import net.sf.jsqlparser.expression.Expression;
+
+import java.util.Map;
 
 public class SelectOperator extends Operator {
     private Operator child;
-    private Expression condition;
+    private Expression expression;
     private Tuple currentTuple;
+    private ExpressionEvaluator expressionEvaluator;
+    private DatabaseCatalog catalog;
 
-    public SelectOperator(Operator child, Expression condition) {
+    public SelectOperator(Operator child, Expression expression, DatabaseCatalog catalog) {
         this.child = child;
-        this.condition = condition;
+        this.expression = expression;
+        this.catalog = catalog;
+        this.expressionEvaluator = new ExpressionEvaluator();
     }
 
     @Override
@@ -24,16 +33,22 @@ public class SelectOperator extends Operator {
 
             if (evaluateCondition(nextTuple)) {
                 // Tuple satisfies the condition, return it
-                currentTuple = nextTuple;
-                return currentTuple;
+                this.currentTuple = nextTuple;
+                return this.currentTuple;
             }
             // Continue to the next tuple from the child operator
         }
     }
 
     @Override
-    void reset() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'reset'");
+    public void reset() {
+        // Reset the state of the SelectOperator
+        this.currentTuple = null;
+        this.child.reset();
+    }
+
+    boolean evaluateCondition(Tuple tuple) {
+        this.expression.accept(expressionEvaluator);
+        return true;
     }
 }

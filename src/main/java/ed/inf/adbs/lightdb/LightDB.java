@@ -24,6 +24,6 @@ public class LightDB {
 		DatabaseCatalog catalog = new DatabaseCatalog(databaseDir);
 		QueryPlanner queryPlanner = new QueryPlanner(catalog);
 		queryPlanner.parseQuery(inputFile);
-		QueryResult queryResult = queryPlanner.evaluate();
+		queryPlanner.evaluate(System.out);
 	}
 }

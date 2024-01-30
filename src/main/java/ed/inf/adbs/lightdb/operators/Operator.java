@@ -5,9 +5,9 @@ import java.io.PrintStream;
 import ed.inf.adbs.lightdb.types.Tuple;
 
 public abstract class Operator {
-    abstract Tuple getNextTuple();
+    public abstract Tuple getNextTuple();
 
-    abstract void reset();
+    public abstract void reset();
 
     public void dump(PrintStream printStream) {
         Tuple nextTuple;

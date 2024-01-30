@@ -28,4 +28,12 @@ public class Tuple {
     public boolean contains(int value) {
         return attrs.contains(value);
     }
+
+    public List<Integer> getAttrs() {
+        return attrs;
+    }
+
+    public int getValueAt(int index) {
+        return this.attrs.get(index);
+    }
 }

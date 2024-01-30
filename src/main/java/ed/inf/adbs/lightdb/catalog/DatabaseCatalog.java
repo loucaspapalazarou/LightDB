@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import ed.inf.adbs.lightdb.types.Table;
+
 public class DatabaseCatalog {
 
     private String dataDir;
@@ -44,4 +46,23 @@ public class DatabaseCatalog {
     public Table getTable(String tableName) {
         return tables.get(tableName);
     }
+
+    public int getColumnIndex(String tableName, String columnName) {
+        Table table = getTable(tableName);
+
+        if (table == null) {
+            throw new IllegalArgumentException("Table not found: " + tableName);
+        }
+
+        String[] columns = table.getColumns();
+
+        for (int i = 0; i < columns.length; i++) {
+            if (columns[i].equals(columnName)) {
+                return i;
+            }
+        }
+
+        throw new IllegalArgumentException("Column not found: " + columnName + " in table " + tableName);
+    }
+
 }

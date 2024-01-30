@@ -1,4 +1,4 @@
-package ed.inf.adbs.lightdb.catalog;
+package ed.inf.adbs.lightdb.types;
 
 public class Table {
     private String tableName;

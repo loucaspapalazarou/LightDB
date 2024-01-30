@@ -1,54 +1,46 @@
 package ed.inf.adbs.lightdb.operators;
 
-import ed.inf.adbs.lightdb.evaluators.ExpressionEvaluator;
+import ed.inf.adbs.lightdb.evaluators.ExpressionVisitor;
 import ed.inf.adbs.lightdb.types.Tuple;
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import net.sf.jsqlparser.expression.Expression;
-
-import java.util.Map;
 
 public class SelectOperator extends Operator {
     private Operator child;
     private Expression expression;
     private Tuple currentTuple;
-    private ExpressionEvaluator expressionEvaluator;
     private DatabaseCatalog catalog;
+    private ExpressionVisitor expressionVisitor;
 
     public SelectOperator(Operator child, Expression expression, DatabaseCatalog catalog) {
         this.child = child;
         this.expression = expression;
         this.catalog = catalog;
-        this.expressionEvaluator = new ExpressionEvaluator();
     }
 
     @Override
     public Tuple getNextTuple() {
         while (true) {
             Tuple nextTuple = child.getNextTuple();
-
             if (nextTuple == null) {
-                // No more tuples from the child operator
                 return null;
             }
-
-            if (evaluateCondition(nextTuple)) {
-                // Tuple satisfies the condition, return it
+            if (evaluateExpression(nextTuple)) {
                 this.currentTuple = nextTuple;
                 return this.currentTuple;
             }
-            // Continue to the next tuple from the child operator
         }
+    }
+
+    public boolean evaluateExpression(Tuple tuple) {
+        expressionVisitor = new ExpressionVisitor(tuple, catalog);
+        this.expression.accept(expressionVisitor);
+        return this.expressionVisitor.getResult();
     }
 
     @Override
     public void reset() {
-        // Reset the state of the SelectOperator
         this.currentTuple = null;
         this.child.reset();
-    }
-
-    boolean evaluateCondition(Tuple tuple) {
-        this.expression.accept(expressionEvaluator);
-        return true;
     }
 }

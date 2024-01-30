@@ -1,9 +1,12 @@
 package ed.inf.adbs.lightdb;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
+
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
-import ed.inf.adbs.lightdb.operators.ScanOperator;
-import ed.inf.adbs.lightdb.planners.QueryPlanner;
-import ed.inf.adbs.lightdb.types.QueryResult;
+import ed.inf.adbs.lightdb.queries.QueryInterpreter;
+import ed.inf.adbs.lightdb.queries.QueryPlan;
 
 /**
  * Lightweight in-memory database system
@@ -22,8 +25,19 @@ public class LightDB {
 		String outputFile = args[2];
 
 		DatabaseCatalog catalog = new DatabaseCatalog(databaseDir);
-		QueryPlanner queryPlanner = new QueryPlanner(catalog);
-		queryPlanner.parseQuery(inputFile);
-		queryPlanner.evaluate(System.out);
+		QueryInterpreter queryInterpreter = new QueryInterpreter(catalog);
+
+		QueryPlan queryPlan = queryInterpreter.parseQuery(inputFile);
+
+		PrintStream printStream = null;
+		try {
+			printStream = new PrintStream(new FileOutputStream(outputFile));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		queryPlan.evaluate(printStream);
+		queryPlan.evaluate(System.out);
+
 	}
 }

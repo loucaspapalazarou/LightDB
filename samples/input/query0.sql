@@ -1,2 +1,2 @@
 -- SELECT * FROM Sailors WHERE Sailors.B >= 200;
-SELECT A,A,C FROM Sailors WHERE Sailors.B >100;
+SELECT A FROM Sailors WHERE 10>2;

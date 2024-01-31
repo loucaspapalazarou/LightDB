@@ -13,6 +13,14 @@ public class Tuple {
         }
     }
 
+    public Tuple() {
+        this.attrs = new ArrayList<>();
+    }
+
+    public void append(int x) {
+        attrs.add(x);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("");

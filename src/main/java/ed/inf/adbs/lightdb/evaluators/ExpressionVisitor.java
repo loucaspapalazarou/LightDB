@@ -33,60 +33,55 @@ public class ExpressionVisitor extends ExpressionDeParser {
         this.result &= expr;
     }
 
-    private LongValue columnReferenceToLongValue(Column column, Tuple tuple, DatabaseCatalog catalog) {
-        String columnName = column.getColumnName();
-        String tableName = column.getTable().getName();
-        int idx = catalog.getColumnIndex(tableName, columnName);
-        return new LongValue().withValue(tuple.getValueAt(idx));
-    }
-
-    private LongValue expressionToLongValue(Expression expression, Tuple tuple, DatabaseCatalog catalog) {
-        if (expression instanceof Column) {
-            return columnReferenceToLongValue((Column) expression, this.tuple, this.catalog);
-        } else {
-            return (LongValue) expression;
-        }
-    }
-
     @Override
     public void visit(EqualsTo equalsTo) {
         LongValue leftValue = expressionToLongValue(equalsTo.getLeftExpression(), tuple, catalog);
-        LongValue rightValue = expressionToLongValue(equalsTo.getRightExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(equalsTo.getRightExpression(), tuple,
+                catalog);
         updateResult(leftValue.getValue() == rightValue.getValue());
     }
 
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
-        LongValue leftValue = expressionToLongValue(notEqualsTo.getLeftExpression(), tuple, catalog);
-        LongValue rightValue = expressionToLongValue(notEqualsTo.getRightExpression(), tuple, catalog);
+        LongValue leftValue = expressionToLongValue(notEqualsTo.getLeftExpression(), tuple,
+                catalog);
+        LongValue rightValue = expressionToLongValue(notEqualsTo.getRightExpression(), tuple,
+                catalog);
         updateResult(leftValue.getValue() != rightValue.getValue());
     }
 
     @Override
     public void visit(MinorThan minorThan) {
         LongValue leftValue = expressionToLongValue(minorThan.getLeftExpression(), tuple, catalog);
-        LongValue rightValue = expressionToLongValue(minorThan.getRightExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(minorThan.getRightExpression(), tuple,
+                catalog);
         updateResult(leftValue.getValue() < rightValue.getValue());
     }
 
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
-        LongValue leftValue = expressionToLongValue(minorThanEquals.getLeftExpression(), tuple, catalog);
-        LongValue rightValue = expressionToLongValue(minorThanEquals.getRightExpression(), tuple, catalog);
+        LongValue leftValue = expressionToLongValue(minorThanEquals.getLeftExpression(), tuple,
+                catalog);
+        LongValue rightValue = expressionToLongValue(minorThanEquals.getRightExpression(), tuple,
+                catalog);
         updateResult(leftValue.getValue() <= rightValue.getValue());
     }
 
     @Override
     public void visit(GreaterThan greaterThan) {
-        LongValue leftValue = expressionToLongValue(greaterThan.getLeftExpression(), tuple, catalog);
-        LongValue rightValue = expressionToLongValue(greaterThan.getRightExpression(), tuple, catalog);
+        LongValue leftValue = expressionToLongValue(greaterThan.getLeftExpression(), tuple,
+                catalog);
+        LongValue rightValue = expressionToLongValue(greaterThan.getRightExpression(), tuple,
+                catalog);
         updateResult(leftValue.getValue() > rightValue.getValue());
     }
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
-        LongValue leftValue = expressionToLongValue(greaterThanEquals.getLeftExpression(), tuple, catalog);
-        LongValue rightValue = expressionToLongValue(greaterThanEquals.getRightExpression(), tuple, catalog);
+        LongValue leftValue = expressionToLongValue(greaterThanEquals.getLeftExpression(), tuple,
+                catalog);
+        LongValue rightValue = expressionToLongValue(greaterThanEquals.getRightExpression(), tuple,
+                catalog);
         updateResult(leftValue.getValue() >= rightValue.getValue());
     }
 
@@ -111,5 +106,20 @@ public class ExpressionVisitor extends ExpressionDeParser {
     @Override
     public void visit(LongValue longValue) {
         throw new UnsupportedOperationException();
+    }
+
+    private static LongValue columnReferenceToLongValue(Column column, Tuple tuple, DatabaseCatalog catalog) {
+        String columnName = column.getColumnName();
+        String tableName = column.getTable().getName();
+        int idx = catalog.getColumnIndex(tableName, columnName);
+        return new LongValue().withValue(tuple.getValueAt(idx));
+    }
+
+    private static LongValue expressionToLongValue(Expression expression, Tuple tuple, DatabaseCatalog catalog) {
+        if (expression instanceof Column) {
+            return columnReferenceToLongValue((Column) expression, tuple, catalog);
+        } else {
+            return (LongValue) expression;
+        }
     }
 }

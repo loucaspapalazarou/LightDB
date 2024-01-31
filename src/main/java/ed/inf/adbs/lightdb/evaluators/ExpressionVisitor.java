@@ -40,57 +40,67 @@ public class ExpressionVisitor extends ExpressionDeParser {
         return new LongValue().withValue(tuple.getValueAt(idx));
     }
 
+    private LongValue expressionToLongValue(Expression expression, Tuple tuple, DatabaseCatalog catalog) {
+        if (expression instanceof Column) {
+            return columnReferenceToLongValue((Column) expression, this.tuple, this.catalog);
+        } else {
+            return (LongValue) expression;
+        }
+    }
+
     @Override
     public void visit(EqualsTo equalsTo) {
-        throw new UnsupportedOperationException();
+        LongValue leftValue = expressionToLongValue(equalsTo.getLeftExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(equalsTo.getRightExpression(), tuple, catalog);
+        updateResult(leftValue.getValue() == rightValue.getValue());
     }
 
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
-        throw new UnsupportedOperationException();
+        LongValue leftValue = expressionToLongValue(notEqualsTo.getLeftExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(notEqualsTo.getRightExpression(), tuple, catalog);
+        updateResult(leftValue.getValue() != rightValue.getValue());
     }
 
     @Override
     public void visit(MinorThan minorThan) {
-        throw new UnsupportedOperationException();
+        LongValue leftValue = expressionToLongValue(minorThan.getLeftExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(minorThan.getRightExpression(), tuple, catalog);
+        updateResult(leftValue.getValue() < rightValue.getValue());
     }
 
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
-        throw new UnsupportedOperationException();
+        LongValue leftValue = expressionToLongValue(minorThanEquals.getLeftExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(minorThanEquals.getRightExpression(), tuple, catalog);
+        updateResult(leftValue.getValue() <= rightValue.getValue());
     }
 
-    // TODO: Abstract this method and just change the operator on the bottom
-    // then just implement the rest of the methods here.
     @Override
     public void visit(GreaterThan greaterThan) {
-        Expression left = greaterThan.getLeftExpression();
-        Expression right = greaterThan.getRightExpression();
-
-        LongValue leftValue, rightValue;
-
-        if (left instanceof Column) {
-            leftValue = columnReferenceToLongValue((Column) left, this.tuple, this.catalog);
-        } else {
-            leftValue = (LongValue) left;
-        }
-
-        if (right instanceof Column) {
-            rightValue = columnReferenceToLongValue((Column) right, this.tuple, this.catalog);
-        } else {
-            rightValue = (LongValue) right;
-        }
+        LongValue leftValue = expressionToLongValue(greaterThan.getLeftExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(greaterThan.getRightExpression(), tuple, catalog);
         updateResult(leftValue.getValue() > rightValue.getValue());
     }
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
-        throw new UnsupportedOperationException();
+        LongValue leftValue = expressionToLongValue(greaterThanEquals.getLeftExpression(), tuple, catalog);
+        LongValue rightValue = expressionToLongValue(greaterThanEquals.getRightExpression(), tuple, catalog);
+        updateResult(leftValue.getValue() >= rightValue.getValue());
     }
 
     @Override
     public void visit(AndExpression andExpression) {
-        throw new UnsupportedOperationException();
+        Expression leftExpression = andExpression.getLeftExpression();
+        Expression rightExpression = andExpression.getRightExpression();
+
+        leftExpression.accept(this);
+        boolean leftResult = getResult();
+        rightExpression.accept(this);
+        boolean rightResult = getResult();
+
+        updateResult(leftResult && rightResult);
     }
 
     @Override

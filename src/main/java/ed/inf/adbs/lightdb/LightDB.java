@@ -29,14 +29,14 @@ public class LightDB {
 
 		QueryPlan queryPlan = queryInterpreter.parseQuery(inputFile);
 
-		PrintStream printStream = null;
+		PrintStream fileOuStream = null;
 		try {
-			printStream = new PrintStream(new FileOutputStream(outputFile));
+			fileOuStream = new PrintStream(new FileOutputStream(outputFile));
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
 
-		queryPlan.evaluate(printStream);
+		queryPlan.evaluate(fileOuStream);
 		queryPlan.evaluate(System.out);
 
 	}

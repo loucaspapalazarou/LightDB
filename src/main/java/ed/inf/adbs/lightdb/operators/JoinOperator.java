@@ -1,19 +1,53 @@
 package ed.inf.adbs.lightdb.operators;
 
+import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.types.Tuple;
+import net.sf.jsqlparser.expression.Expression;
 
 public class JoinOperator extends Operator {
 
+    private Operator left;
+    private Operator right;
+    private Expression expression;
+    private DatabaseCatalog catalog;
+    private Tuple currentLeftTuple;
+
+    public JoinOperator(Operator left, Operator right, Expression whereExpression, DatabaseCatalog catalog) {
+        this.left = left;
+        this.right = right;
+        this.expression = expression;
+        this.catalog = catalog;
+        this.currentLeftTuple = this.left.getNextTuple();
+    }
+
     @Override
     public Tuple getNextTuple() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getNextTuple'");
+        Tuple rightTuple = this.right.getNextTuple();
+        if (rightTuple == null) {
+            this.right.reset();
+            this.currentLeftTuple = this.left.getNextTuple();
+            rightTuple = this.right.getNextTuple();
+        }
+        if (this.currentLeftTuple == null) {
+            return null;
+        }
+        if (tuplesSatisfyExpression(this.currentLeftTuple, rightTuple, this.expression)) {
+            return Tuple.concatTuples(this.currentLeftTuple, rightTuple);
+        }
+        return this.getNextTuple();
+
     }
 
     @Override
     public void reset() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'reset'");
+        this.left.reset();
+        this.right.reset();
+        this.currentLeftTuple = this.left.getNextTuple();
+    }
+
+    // TODO: Implement this logic
+    private boolean tuplesSatisfyExpression(Tuple leftTuple, Tuple righTuple, Expression expression) {
+        return leftTuple.getValueAt(1) == 200;
     }
 
 }

@@ -21,6 +21,13 @@ public class Tuple {
         attrs.add(x);
     }
 
+    public static Tuple concatTuples(Tuple a, Tuple b) {
+        Tuple t = new Tuple();
+        t.attrs.addAll(a.getAttrs());
+        t.attrs.addAll(b.getAttrs());
+        return t;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("");

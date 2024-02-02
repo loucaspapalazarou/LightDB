@@ -3,15 +3,22 @@ package ed.inf.adbs.lightdb.catalog;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import ed.inf.adbs.lightdb.types.Table;
+// import ed.inf.adbs.lightdb.types.Table;
+import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
+import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.Join;
 
 public class DatabaseCatalog {
 
     private String dataDir;
-    private Map<String, Table> tables;
+    private Map<Table, List<Column>> tables;
 
     public DatabaseCatalog(String databaseDir) {
         this.dataDir = databaseDir + "/data/";
@@ -24,45 +31,63 @@ public class DatabaseCatalog {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] parts = line.split("\\s+");
-                String tableName = parts[0];
-                String[] columns = new String[parts.length - 1];
-                System.arraycopy(parts, 1, columns, 0, columns.length);
-                addTable(tableName, columns);
+                Table table = new Table(parts[0]);
+                List<Column> columns = new ArrayList<>();
+                for (int i = 1; i < parts.length; i++) {
+                    columns.add(new Column(table, parts[i]));
+                }
+                tables.put(table, columns);
             }
         } catch (IOException e) {
-            e.printStackTrace(); // Handle the exception according to your requirements
+            e.printStackTrace();
         }
-    }
-
-    public void addTable(String tableName, String... columns) {
-        Table table = new Table(tableName, columns);
-        tables.put(tableName, table);
     }
 
     public String getTableDir(String table) {
         return this.dataDir + table + ".csv";
     }
 
-    public Table getTable(String tableName) {
-        return tables.get(tableName);
+    public int getColumnIndex(Column column) {
+        for (Entry<Table, List<Column>> table : this.tables.entrySet()) {
+            if (table.getKey().getName().equals(column.getTable().getName())) {
+                for (Column c : table.getValue()) {
+                    if (c.getColumnName().equals(column.getColumnName())) {
+                        return table.getValue().indexOf(c);
+                    }
+                }
+            }
+        }
+        return -1;
     }
 
-    public int getColumnIndex(String tableName, String columnName) {
-        Table table = getTable(tableName);
+    public int getColumnIndex(Column column, FromItem fromItem, List<Join> joins) {
+        // create a temporary column list based on the order of the join
+        // go though all columns of fromItem and joins and stick them together
+        List<Column> tempColumns = new ArrayList<>();
+        Table tempTable = new Table(fromItem.toString());
+        tempColumns.addAll(getAllColumns(tempTable));
 
-        if (table == null) {
-            throw new IllegalArgumentException("Table not found: " + tableName);
+        for (Join join : joins) {
+            tempTable = new Table(join.getFromItem().toString());
+            tempColumns.addAll(getAllColumns(tempTable));
         }
 
-        String[] columns = table.getColumns();
-
-        for (int i = 0; i < columns.length; i++) {
-            if (columns[i].equals(columnName)) {
-                return i;
+        for (Column c : tempColumns) {
+            if (c.getColumnName().equals(column.getColumnName())) {
+                return tempColumns.indexOf(c);
             }
         }
 
-        throw new IllegalArgumentException("Column not found: " + columnName + " in table " + tableName);
+        return -1;
+    }
+
+    private List<Column> getAllColumns(Table table) {
+        for (Entry<Table, List<Column>> t : this.tables.entrySet()) {
+            if (t.getKey().getName().equals(table.getName())) {
+                return t.getValue();
+            }
+        }
+        return null;
     }
 
 }

@@ -109,9 +109,7 @@ public class ExpressionVisitor extends ExpressionDeParser {
     }
 
     private static LongValue columnReferenceToLongValue(Column column, Tuple tuple, DatabaseCatalog catalog) {
-        String columnName = column.getColumnName();
-        String tableName = column.getTable().getName();
-        int idx = catalog.getColumnIndex(tableName, columnName);
+        int idx = catalog.getColumnIndex(column);
         return new LongValue().withValue(tuple.getValueAt(idx));
     }
 

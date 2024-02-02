@@ -44,7 +44,7 @@ public class QueryInterpreter {
                 rootOperator = selectOperator;
             }
 
-            // TODO possible joins
+            // Possible joins
             List<Join> joins = select.getJoins();
             if (joins != null) {
                 for (Join join : joins) {

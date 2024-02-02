@@ -9,20 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import net.sf.jsqlparser.expression.Alias;
 // import ed.inf.adbs.lightdb.types.Table;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 
 public class DatabaseCatalog {
 
     private String dataDir;
     private Map<Table, List<Column>> tables;
+    private Map<Alias, Table> aliases;
 
     public DatabaseCatalog(String databaseDir) {
         this.dataDir = databaseDir + "/data/";
         this.tables = new HashMap<>();
+        this.aliases = new HashMap<>();
         loadSchemaFromFile(databaseDir + "/schema.txt");
     }
 
@@ -43,16 +47,44 @@ public class DatabaseCatalog {
         }
     }
 
+    public void addAliases(PlainSelect select) {
+        FromItem fromItem = select.getFromItem();
+        this.aliases.put(fromItem.getAlias(), (Table) fromItem);
+        List<Join> joins = select.getJoins();
+        if (joins != null) {
+            for (Join join : joins) {
+                this.aliases.put(join.getFromItem().getAlias(), (Table) join.getFromItem());
+            }
+        }
+    }
+
     public String getTableDir(String table) {
         return this.dataDir + table + ".csv";
     }
 
     public int getColumnIndex(Column column) {
-        for (Entry<Table, List<Column>> table : this.tables.entrySet()) {
-            if (table.getKey().getName().equals(column.getTable().getName())) {
-                for (Column c : table.getValue()) {
+        // Look for table in aliased tables
+        String tableName = getTableFromAliasedTable(column);
+
+        // if the table was found in the alias map,
+        if (tableName != null) {
+            for (Entry<Table, List<Column>> tableEntry : this.tables.entrySet()) {
+                if (tableEntry.getKey().getName().equals(tableName)) {
+                    for (Column c : tableEntry.getValue()) {
+                        if (c.getColumnName().equals(column.getColumnName())) {
+                            return tableEntry.getValue().indexOf(c);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Look for that table in normal tables
+        for (Entry<Table, List<Column>> tableEntry : this.tables.entrySet()) {
+            if (tableEntry.getKey().getName().equals(column.getTable().getName())) {
+                for (Column c : tableEntry.getValue()) {
                     if (c.getColumnName().equals(column.getColumnName())) {
-                        return table.getValue().indexOf(c);
+                        return tableEntry.getValue().indexOf(c);
                     }
                 }
             }
@@ -60,15 +92,17 @@ public class DatabaseCatalog {
         return -1;
     }
 
+    // TODO: Fix
     public int getColumnIndex(Column column, FromItem fromItem, List<Join> joins) {
+        // System.out.println(getTableFromAliasedTable((Table) fromItem));
         // create a temporary column list based on the order of the join
         // go though all columns of fromItem and joins and stick them together
         List<Column> tempColumns = new ArrayList<>();
-        Table tempTable = new Table(fromItem.toString());
+        Table tempTable = new Table(((Table) fromItem).getName());
         tempColumns.addAll(getAllColumns(tempTable));
 
         for (Join join : joins) {
-            tempTable = new Table(join.getFromItem().toString());
+            tempTable = new Table(((Table) join.getFromItem()).getName());
             tempColumns.addAll(getAllColumns(tempTable));
         }
 
@@ -79,6 +113,15 @@ public class DatabaseCatalog {
         }
 
         return -1;
+    }
+
+    private String getTableFromAliasedTable(Column column) {
+        for (Entry<Alias, Table> aliasEntry : this.aliases.entrySet()) {
+            if (column.getTable().getName().equals(aliasEntry.getKey().getName())) {
+                return aliasEntry.getValue().getName();
+            }
+        }
+        return null;
     }
 
     private List<Column> getAllColumns(Table table) {

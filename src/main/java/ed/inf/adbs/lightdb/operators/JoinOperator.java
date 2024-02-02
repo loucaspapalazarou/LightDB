@@ -47,7 +47,6 @@ public class JoinOperator extends Operator {
         this.currentLeftTuple = this.left.getNextTuple();
     }
 
-    // TODO: Implement this logic
     private boolean tuplesSatisfyExpression(Tuple leftTuple, Tuple rightTuple, Expression expression) {
         return evaluateExpression(leftTuple, rightTuple);
     }

@@ -6,6 +6,7 @@ import java.io.IOException;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.types.Tuple;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.FromItem;
 
 public class ScanOperator extends Operator {
@@ -14,9 +15,9 @@ public class ScanOperator extends Operator {
     private DatabaseCatalog catalog;
 
     public ScanOperator(FromItem fromItem, DatabaseCatalog catalog) {
-        this.tableName = fromItem.toString();
+        this.tableName = ((Table) fromItem).getName();
         this.catalog = catalog;
-        this.reader = openFileReader(tableName);
+        this.reader = openFileReader(((Table) fromItem).getName());
     }
 
     private BufferedReader openFileReader(String tableName) {

@@ -1,4 +1,1 @@
--- SELECT * FROM Sailors WHERE Sailors.B >= 200;
--- SELECT * FROM Sailors, Boats, Reserves;
-SELECT * FROM Sailors, Reserves WHERE Sailors.A = Reserves.G;
--- SELECT * FROM Sailors, Reserves WHERE Sailors.A > 0;
+SELECT S.A, S.B, R.G FROM Sailors S, Reserves R WHERE S.A = R.G;

@@ -8,14 +8,10 @@ import net.sf.jsqlparser.schema.Column;
 
 public class Converter {
 
-    private static LongValue columnReferenceToLongValue(Column column, Tuple tuple, DatabaseCatalog catalog) {
-        int idx = catalog.getColumnIndex(column);
-        return new LongValue().withValue(tuple.getValueAt(idx));
-    }
-
     public static LongValue expressionToLongValue(Expression expression, Tuple tuple, DatabaseCatalog catalog) {
         if (expression instanceof Column) {
-            return columnReferenceToLongValue((Column) expression, tuple, catalog);
+            int idx = catalog.getColumnIndex((Column) expression);
+            return new LongValue().withValue(tuple.getValueAt(idx));
         } else {
             return (LongValue) expression;
         }

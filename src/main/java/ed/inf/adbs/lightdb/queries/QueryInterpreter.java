@@ -33,6 +33,9 @@ public class QueryInterpreter {
             PlainSelect select = (PlainSelect) statement;
             Operator rootOperator = null;
 
+            // parse aliases
+            catalog.addAliases(select);
+
             // mandatory scan
             ScanOperator scanOperator = new ScanOperator(select.getFromItem(), this.catalog);
             rootOperator = scanOperator;

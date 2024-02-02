@@ -1,8 +1,8 @@
 package ed.inf.adbs.lightdb.operators;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
-import ed.inf.adbs.lightdb.evaluators.ExpressionVisitor;
 import ed.inf.adbs.lightdb.types.Tuple;
+import ed.inf.adbs.lightdb.visitors.JoinExpressionVisitor;
 import net.sf.jsqlparser.expression.Expression;
 
 public class JoinOperator extends Operator {
@@ -12,7 +12,7 @@ public class JoinOperator extends Operator {
     private Expression expression;
     private DatabaseCatalog catalog;
     private Tuple currentLeftTuple;
-    private ExpressionVisitor expressionVisitor;
+    private JoinExpressionVisitor expressionVisitor;
 
     public JoinOperator(Operator left, Operator right, Expression whereExpression, DatabaseCatalog catalog) {
         this.left = left;
@@ -48,14 +48,12 @@ public class JoinOperator extends Operator {
     }
 
     // TODO: Implement this logic
-    private boolean tuplesSatisfyExpression(Tuple leftTuple, Tuple righTuple, Expression expression) {
-        // System.out.println(expression);
-        return true;
-        // return leftTuple.getValueAt(1) == 200;
+    private boolean tuplesSatisfyExpression(Tuple leftTuple, Tuple rightTuple, Expression expression) {
+        return evaluateExpression(leftTuple, rightTuple);
     }
 
-    public boolean evaluateExpression(Tuple tuple) {
-        expressionVisitor = new ExpressionVisitor(tuple, catalog);
+    public boolean evaluateExpression(Tuple leftTuple, Tuple righTuple) {
+        expressionVisitor = new JoinExpressionVisitor(leftTuple, righTuple, catalog);
         this.expression.accept(expressionVisitor);
         return this.expressionVisitor.getResult();
     }

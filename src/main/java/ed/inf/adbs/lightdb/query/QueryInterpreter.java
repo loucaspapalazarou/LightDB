@@ -9,11 +9,13 @@ import ed.inf.adbs.lightdb.operator.Operator;
 import ed.inf.adbs.lightdb.operator.ProjectionOperator;
 import ed.inf.adbs.lightdb.operator.ScanOperator;
 import ed.inf.adbs.lightdb.operator.SelectOperator;
+import ed.inf.adbs.lightdb.operator.SortOperator;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.Join;
+import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 
 public class QueryInterpreter {
@@ -61,6 +63,14 @@ public class QueryInterpreter {
             if (!select.getSelectItem(0).toString().equals("*")) {
                 ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select);
                 rootOperator = projectionOperator;
+            }
+
+            // optional order by
+            // assuming only one will be provided
+            // TODO: Sort!
+            OrderByElement orderByElement = select.getOrderByElements().get(0);
+            if (orderByElement != null) {
+                rootOperator = new SortOperator(rootOperator, orderByElement);
             }
 
             return new QueryPlan(rootOperator);

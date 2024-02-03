@@ -1,1 +1,1 @@
-SELECT S1.A, S2.A FROM Sailors S1, Sailors S2 WHERE S1.A < S2.A;
+SELECT * FROM Sailors S ORDER BY S.B;

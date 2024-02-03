@@ -26,8 +26,12 @@ public class Tuple {
         for (int i = 0; i < columns.size(); i++) {
             TupleElement newTupleElement = null;
             Column c = columns.get(i);
-            String alias = fromItem.getAlias().getName();
-            newTupleElement = new TupleElement(c.getColumnName(), c.getTable().getName(), alias, values[i]);
+            String aliasName = null;
+            Alias alias = fromItem.getAlias();
+            if (alias != null) {
+                aliasName = alias.getName();
+            }
+            newTupleElement = new TupleElement(c.getColumnName(), c.getTable().getName(), aliasName, values[i]);
             this.elements.add(newTupleElement);
         }
     }

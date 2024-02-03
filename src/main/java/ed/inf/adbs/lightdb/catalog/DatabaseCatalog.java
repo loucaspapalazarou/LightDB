@@ -49,10 +49,18 @@ public class DatabaseCatalog {
 
     public void addAliases(PlainSelect select) {
         FromItem fromItem = select.getFromItem();
-        this.aliases.put(fromItem.getAlias(), (Table) fromItem);
+        Alias fromAlias = fromItem.getAlias();
+        if (fromAlias != null) {
+            this.aliases.put(fromItem.getAlias(), (Table) fromItem);
+        }
         List<Join> joins = select.getJoins();
-        if (joins != null) {
-            for (Join join : joins) {
+        if (joins == null) {
+            return;
+        }
+        Alias joinAlias;
+        for (Join join : joins) {
+            joinAlias = join.getFromItem().getAlias();
+            if (joinAlias != null) {
                 this.aliases.put(join.getFromItem().getAlias(), (Table) join.getFromItem());
             }
         }
@@ -62,69 +70,7 @@ public class DatabaseCatalog {
         return this.dataDir + table + ".csv";
     }
 
-    public int getColumnIndex(Column column) {
-        // Look for table in aliased tables
-        String tableName = getTableFromAliasedTable(column);
-
-        // if the table was found in the alias map,
-        if (tableName != null) {
-            for (Entry<Table, List<Column>> tableEntry : this.tables.entrySet()) {
-                if (tableEntry.getKey().getName().equals(tableName)) {
-                    for (Column c : tableEntry.getValue()) {
-                        if (c.getColumnName().equals(column.getColumnName())) {
-                            return tableEntry.getValue().indexOf(c);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Look for that table in normal tables
-        for (Entry<Table, List<Column>> tableEntry : this.tables.entrySet()) {
-            if (tableEntry.getKey().getName().equals(column.getTable().getName())) {
-                for (Column c : tableEntry.getValue()) {
-                    if (c.getColumnName().equals(column.getColumnName())) {
-                        return tableEntry.getValue().indexOf(c);
-                    }
-                }
-            }
-        }
-        return -1;
-    }
-
-    // TODO: Fix
-    public int getColumnIndex(Column column, FromItem fromItem, List<Join> joins) {
-        // System.out.println(getTableFromAliasedTable((Table) fromItem));
-        // create a temporary column list based on the order of the join
-        // go though all columns of fromItem and joins and stick them together
-        List<Column> tempColumns = new ArrayList<>();
-        Table tempTable = new Table(((Table) fromItem).getName());
-        tempColumns.addAll(getAllColumns(tempTable));
-
-        for (Join join : joins) {
-            tempTable = new Table(((Table) join.getFromItem()).getName());
-            tempColumns.addAll(getAllColumns(tempTable));
-        }
-
-        for (Column c : tempColumns) {
-            if (c.getColumnName().equals(column.getColumnName())) {
-                return tempColumns.indexOf(c);
-            }
-        }
-
-        return -1;
-    }
-
-    private String getTableFromAliasedTable(Column column) {
-        for (Entry<Alias, Table> aliasEntry : this.aliases.entrySet()) {
-            if (column.getTable().getName().equals(aliasEntry.getKey().getName())) {
-                return aliasEntry.getValue().getName();
-            }
-        }
-        return null;
-    }
-
-    private List<Column> getAllColumns(Table table) {
+    public List<Column> getAllColumns(Table table) {
         for (Entry<Table, List<Column>> t : this.tables.entrySet()) {
             if (t.getKey().getName().equals(table.getName())) {
                 return t.getValue();

@@ -1,8 +1,8 @@
-package ed.inf.adbs.lightdb.operators;
+package ed.inf.adbs.lightdb.operator;
 
 import java.io.PrintStream;
 
-import ed.inf.adbs.lightdb.types.Tuple;
+import ed.inf.adbs.lightdb.type.Tuple;
 
 public abstract class Operator {
     public abstract Tuple getNextTuple();

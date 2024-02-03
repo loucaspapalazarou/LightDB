@@ -1,14 +1,14 @@
-package ed.inf.adbs.lightdb.queries;
+package ed.inf.adbs.lightdb.query;
 
 import java.io.FileReader;
 import java.util.List;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
-import ed.inf.adbs.lightdb.operators.JoinOperator;
-import ed.inf.adbs.lightdb.operators.Operator;
-import ed.inf.adbs.lightdb.operators.ProjectionOperator;
-import ed.inf.adbs.lightdb.operators.ScanOperator;
-import ed.inf.adbs.lightdb.operators.SelectOperator;
+import ed.inf.adbs.lightdb.operator.JoinOperator;
+import ed.inf.adbs.lightdb.operator.Operator;
+import ed.inf.adbs.lightdb.operator.ProjectionOperator;
+import ed.inf.adbs.lightdb.operator.ScanOperator;
+import ed.inf.adbs.lightdb.operator.SelectOperator;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
@@ -33,9 +33,6 @@ public class QueryInterpreter {
             PlainSelect select = (PlainSelect) statement;
             Operator rootOperator = null;
 
-            // parse aliases
-            catalog.addAliases(select);
-
             // mandatory scan
             ScanOperator scanOperator = new ScanOperator(select.getFromItem(), this.catalog);
             rootOperator = scanOperator;
@@ -43,7 +40,8 @@ public class QueryInterpreter {
             // optional where
             Expression whereExpression = select.getWhere();
             if (whereExpression != null) {
-                SelectOperator selectOperator = new SelectOperator(rootOperator, whereExpression, this.catalog);
+                SelectOperator selectOperator = new SelectOperator(rootOperator,
+                        whereExpression, this.catalog);
                 rootOperator = selectOperator;
             }
 
@@ -51,23 +49,17 @@ public class QueryInterpreter {
             List<Join> joins = select.getJoins();
             if (joins != null) {
                 for (Join join : joins) {
-                    Operator left = rootOperator;
-                    ScanOperator tempScan = new ScanOperator(join.getFromItem(), this.catalog);
-                    JoinOperator joinOperator = null;
-                    // there might not be a WHERE, which means cartesian product
+                    Operator right = new ScanOperator(join.getFromItem(), this.catalog);
                     if (whereExpression != null) {
-                        SelectOperator tempSelect = new SelectOperator(tempScan, whereExpression, this.catalog);
-                        joinOperator = new JoinOperator(left, tempSelect, whereExpression, this.catalog);
-                    } else {
-                        joinOperator = new JoinOperator(left, tempScan, whereExpression, this.catalog);
+                        right = new SelectOperator(right, whereExpression, this.catalog);
                     }
-                    rootOperator = joinOperator;
+                    rootOperator = new JoinOperator(rootOperator, right, whereExpression, this.catalog);
                 }
             }
 
             // optional projection
             if (!select.getSelectItem(0).toString().equals("*")) {
-                ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select, this.catalog);
+                ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select);
                 rootOperator = projectionOperator;
             }
 

@@ -1,1 +1,1 @@
-SELECT S.A, S.B, R.G FROM Sailors S, Reserves R WHERE S.A = R.G;
+SELECT S1.A, S2.A FROM Sailors S1, Sailors S2 WHERE S1.A < S2.A;

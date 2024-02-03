@@ -5,8 +5,8 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
-import ed.inf.adbs.lightdb.queries.QueryInterpreter;
-import ed.inf.adbs.lightdb.queries.QueryPlan;
+import ed.inf.adbs.lightdb.query.QueryInterpreter;
+import ed.inf.adbs.lightdb.query.QueryPlan;
 
 /**
  * Lightweight in-memory database system

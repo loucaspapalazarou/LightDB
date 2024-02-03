@@ -1,8 +1,8 @@
-package ed.inf.adbs.lightdb.operators;
+package ed.inf.adbs.lightdb.operator;
 
-import ed.inf.adbs.lightdb.types.Tuple;
-import ed.inf.adbs.lightdb.visitors.SelectExpressionVisitor;
+import ed.inf.adbs.lightdb.visitor.ExpressionVisitor;
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
+import ed.inf.adbs.lightdb.type.Tuple;
 import net.sf.jsqlparser.expression.Expression;
 
 public class SelectOperator extends Operator {
@@ -10,7 +10,7 @@ public class SelectOperator extends Operator {
     private Expression expression;
     private Tuple currentTuple;
     private DatabaseCatalog catalog;
-    private SelectExpressionVisitor expressionVisitor;
+    private ExpressionVisitor expressionVisitor;
 
     public SelectOperator(Operator child, Expression expression, DatabaseCatalog catalog) {
         this.child = child;
@@ -33,9 +33,14 @@ public class SelectOperator extends Operator {
     }
 
     public boolean evaluateExpression(Tuple tuple) {
-        expressionVisitor = new SelectExpressionVisitor(tuple, catalog);
-        this.expression.accept(expressionVisitor);
-        return this.expressionVisitor.getResult();
+        expressionVisitor = new ExpressionVisitor(tuple, catalog);
+        try {
+            this.expression.accept(expressionVisitor);
+            return this.expressionVisitor.getResult();
+        } catch (Exception e) {
+            // System.out.println("Where columns not available yet");
+        }
+        return true;
     }
 
     @Override

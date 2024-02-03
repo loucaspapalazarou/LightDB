@@ -1,8 +1,8 @@
-package ed.inf.adbs.lightdb.queries;
+package ed.inf.adbs.lightdb.query;
 
 import java.io.PrintStream;
 
-import ed.inf.adbs.lightdb.operators.Operator;
+import ed.inf.adbs.lightdb.operator.Operator;
 
 public class QueryPlan {
 

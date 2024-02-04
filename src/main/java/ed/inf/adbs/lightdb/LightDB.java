@@ -36,7 +36,7 @@ public class LightDB {
 			e.printStackTrace();
 		}
 
-		queryPlan.evaluate(filePrintStream);
+		// queryPlan.evaluate(filePrintStream);
 		queryPlan.evaluate(System.out);
 
 	}

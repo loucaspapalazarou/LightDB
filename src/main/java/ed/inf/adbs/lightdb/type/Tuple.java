@@ -36,7 +36,7 @@ public class Tuple {
         }
     }
 
-    private List<TupleElement> getElements() {
+    public List<TupleElement> getElements() {
         return this.elements;
     }
 
@@ -87,5 +87,14 @@ public class Tuple {
         }
         TupleElement t = new TupleElement(columnName, tableName, aliasName, val);
         this.elements.add(t);
+    }
+
+    public Integer getIndexOf(Column c) {
+        for (TupleElement te : this.elements) {
+            if (te.columnsMatch(c)) {
+                return this.elements.indexOf(te);
+            }
+        }
+        return null;
     }
 }

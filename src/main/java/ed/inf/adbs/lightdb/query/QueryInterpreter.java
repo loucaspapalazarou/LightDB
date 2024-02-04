@@ -68,9 +68,9 @@ public class QueryInterpreter {
             // optional order by
             // assuming only one will be provided
             // TODO: Sort!
-            OrderByElement orderByElement = select.getOrderByElements().get(0);
-            if (orderByElement != null) {
-                rootOperator = new SortOperator(rootOperator, orderByElement);
+            List<OrderByElement> orderByElements = select.getOrderByElements();
+            if (orderByElements != null) {
+                rootOperator = new SortOperator(rootOperator, orderByElements);
             }
 
             return new QueryPlan(rootOperator);

@@ -1,1 +1,1 @@
-SELECT * FROM Sailors S ORDER BY S.B;
+SELECT * FROM Sailors S ORDER BY S.B, S.C;

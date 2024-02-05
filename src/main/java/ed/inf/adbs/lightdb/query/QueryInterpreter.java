@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.util.List;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
+import ed.inf.adbs.lightdb.operator.DuplicateEliminationOperator;
 import ed.inf.adbs.lightdb.operator.JoinOperator;
 import ed.inf.adbs.lightdb.operator.Operator;
 import ed.inf.adbs.lightdb.operator.ProjectionOperator;
@@ -65,12 +66,13 @@ public class QueryInterpreter {
                 rootOperator = projectionOperator;
             }
 
-            // optional order by
-            // assuming only one will be provided
-            // TODO: Sort!
             List<OrderByElement> orderByElements = select.getOrderByElements();
             if (orderByElements != null) {
                 rootOperator = new SortOperator(rootOperator, orderByElements);
+            }
+
+            if (select.getDistinct() != null) {
+                rootOperator = new DuplicateEliminationOperator(rootOperator);
             }
 
             return new QueryPlan(rootOperator);

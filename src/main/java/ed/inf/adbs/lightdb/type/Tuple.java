@@ -2,6 +2,7 @@ package ed.inf.adbs.lightdb.type;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.schema.Column;
@@ -97,4 +98,15 @@ public class Tuple {
         }
         return null;
     }
+
+    @Override
+    public int hashCode() {
+        // return Objects.hash(this.elements);
+        int hash = 1;
+        for (TupleElement element : this.elements) {
+            hash = 31 * hash + Objects.hashCode(element);
+        }
+        return hash;
+    }
+
 }

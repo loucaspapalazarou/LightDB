@@ -1,5 +1,7 @@
 package ed.inf.adbs.lightdb.type;
 
+import java.util.Objects;
+
 import net.sf.jsqlparser.schema.Column;
 
 public class TupleElement {
@@ -38,5 +40,10 @@ public class TupleElement {
 
     public String toString() {
         return Integer.toString(value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.tableName, this.columnName, this.alias, this.value);
     }
 }

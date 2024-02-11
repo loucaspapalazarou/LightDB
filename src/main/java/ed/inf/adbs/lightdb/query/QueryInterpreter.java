@@ -11,13 +11,18 @@ import ed.inf.adbs.lightdb.operator.ProjectionOperator;
 import ed.inf.adbs.lightdb.operator.ScanOperator;
 import ed.inf.adbs.lightdb.operator.SelectOperator;
 import ed.inf.adbs.lightdb.operator.SortOperator;
+import ed.inf.adbs.lightdb.operator.SumOperator;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.GroupByElement;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.OrderByElement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import net.sf.jsqlparser.statement.select.SelectItem;
 
 public class QueryInterpreter {
 
@@ -60,20 +65,45 @@ public class QueryInterpreter {
                 }
             }
 
-            // optional projection
-            if (!select.getSelectItem(0).toString().equals("*")) {
-                ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select);
-                rootOperator = projectionOperator;
+            // Group by / Sum
+            Function sumFunction = null;
+            for (SelectItem<?> s : select.getSelectItems()) {
+                if (s.getExpression() instanceof Function) {
+                    sumFunction = (Function) s.getExpression();
+                    break;
+                }
+            }
+            GroupByElement groupByElement = select.getGroupBy();
+            if (groupByElement != null || sumFunction != null) {
+                SumOperator sumOperator = new SumOperator(rootOperator, groupByElement, sumFunction);
+                rootOperator = sumOperator;
             }
 
-            List<OrderByElement> orderByElements = select.getOrderByElements();
-            if (orderByElements != null) {
-                rootOperator = new SortOperator(rootOperator, orderByElements);
-            }
+            // // optional projection
+            // boolean includeProjection = true;
+            // for (SelectItem<?> selectItem : select.getSelectItems()) {
+            // // If '*' in the selection, we don't need the ProjectionOperator
+            // if (selectItem.getExpression() instanceof AllColumns) {
+            // includeProjection = false;
+            // break;
+            // }
+            // }
+            // if (includeProjection) {
+            // ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator,
+            // select);
+            // rootOperator = projectionOperator;
+            // }
 
-            if (select.getDistinct() != null) {
-                rootOperator = new DuplicateEliminationOperator(rootOperator);
-            }
+            // // optional order
+            // List<OrderByElement> orderByElements = select.getOrderByElements();
+            // if (orderByElements != null) {
+            // rootOperator = new SortOperator(rootOperator, orderByElements);
+            // }
+
+            // // optional distinct
+            // if (select.getDistinct() != null) {
+            // rootOperator = new DuplicateEliminationOperator(rootOperator);
+            // }
 
             return new QueryPlan(rootOperator);
         } catch (Exception e) {

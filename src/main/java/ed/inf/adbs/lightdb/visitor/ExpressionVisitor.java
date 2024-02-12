@@ -33,43 +33,43 @@ public class ExpressionVisitor extends ExpressionDeParser {
 
     @Override
     public void visit(EqualsTo equalsTo) {
-        LongValue leftValue = exppressionToValue(equalsTo.getLeftExpression(), this.tuple);
-        LongValue rightValue = exppressionToValue(equalsTo.getRightExpression(), this.tuple);
+        LongValue leftValue = expressionToValue(equalsTo.getLeftExpression(), this.tuple);
+        LongValue rightValue = expressionToValue(equalsTo.getRightExpression(), this.tuple);
         updateResult(leftValue.getValue() == rightValue.getValue());
     }
 
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
-        LongValue leftValue = exppressionToValue(notEqualsTo.getLeftExpression(), tuple);
-        LongValue rightValue = exppressionToValue(notEqualsTo.getRightExpression(), tuple);
+        LongValue leftValue = expressionToValue(notEqualsTo.getLeftExpression(), tuple);
+        LongValue rightValue = expressionToValue(notEqualsTo.getRightExpression(), tuple);
         updateResult(leftValue.getValue() != rightValue.getValue());
     }
 
     @Override
     public void visit(MinorThan minorThan) {
-        LongValue leftValue = exppressionToValue(minorThan.getLeftExpression(), tuple);
-        LongValue rightValue = exppressionToValue(minorThan.getRightExpression(), tuple);
+        LongValue leftValue = expressionToValue(minorThan.getLeftExpression(), tuple);
+        LongValue rightValue = expressionToValue(minorThan.getRightExpression(), tuple);
         updateResult(leftValue.getValue() < rightValue.getValue());
     }
 
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
-        LongValue leftValue = exppressionToValue(minorThanEquals.getLeftExpression(), tuple);
-        LongValue rightValue = exppressionToValue(minorThanEquals.getRightExpression(), tuple);
+        LongValue leftValue = expressionToValue(minorThanEquals.getLeftExpression(), tuple);
+        LongValue rightValue = expressionToValue(minorThanEquals.getRightExpression(), tuple);
         updateResult(leftValue.getValue() <= rightValue.getValue());
     }
 
     @Override
     public void visit(GreaterThan greaterThan) {
-        LongValue leftValue = exppressionToValue(greaterThan.getLeftExpression(), tuple);
-        LongValue rightValue = exppressionToValue(greaterThan.getRightExpression(), tuple);
+        LongValue leftValue = expressionToValue(greaterThan.getLeftExpression(), tuple);
+        LongValue rightValue = expressionToValue(greaterThan.getRightExpression(), tuple);
         updateResult(leftValue.getValue() > rightValue.getValue());
     }
 
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
-        LongValue leftValue = exppressionToValue(greaterThanEquals.getLeftExpression(), tuple);
-        LongValue rightValue = exppressionToValue(greaterThanEquals.getRightExpression(), tuple);
+        LongValue leftValue = expressionToValue(greaterThanEquals.getLeftExpression(), tuple);
+        LongValue rightValue = expressionToValue(greaterThanEquals.getRightExpression(), tuple);
         updateResult(leftValue.getValue() >= rightValue.getValue());
     }
 
@@ -86,7 +86,7 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftResult && rightResult);
     }
 
-    private LongValue exppressionToValue(Expression expression, Tuple tuple) {
+    private LongValue expressionToValue(Expression expression, Tuple tuple) {
         if (expression instanceof LongValue) {
             return (LongValue) expression;
         }

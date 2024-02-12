@@ -41,6 +41,10 @@ public class Tuple {
         return this.elements;
     }
 
+    public void add(TupleElement te) {
+        this.elements.add(te);
+    }
+
     public static Tuple concatTuples(Tuple a, Tuple b) {
         Tuple t = new Tuple();
         t.elements.addAll(a.getElements());

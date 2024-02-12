@@ -1,3 +1,0 @@
-samples/db
-samples/input/query0.sql
-samples/output/query0.csv

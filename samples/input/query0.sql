@@ -1,1 +1,1 @@
-SELECT Reserves.H, SUM(Reserves.G * Reserves.G) FROM Reserves R;
+SELECT SUM(Sailors.A) FROM Sailors WHERE 1 = 2;

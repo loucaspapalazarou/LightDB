@@ -1,6 +1,8 @@
 package ed.inf.adbs.lightdb.operator;
 
 import ed.inf.adbs.lightdb.type.Tuple;
+import ed.inf.adbs.lightdb.type.TupleElement;
+import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectItem;
@@ -19,8 +21,15 @@ public class ProjectionOperator extends Operator {
         Tuple outputTuple = new Tuple();
         Column c = null;
         for (SelectItem<?> selectItem : this.select.getSelectItems()) {
-            c = (Column) selectItem.getExpression();
-            outputTuple.append(c, initialTuple.getValueAt(c));
+            if (!(selectItem.getExpression() instanceof Function)) {
+                c = (Column) selectItem.getExpression();
+                outputTuple.append(c, initialTuple.getValueAt(c));
+            }
+        }
+        for (TupleElement te : initialTuple.getElements()) {
+            if (te.isPersistent()) {
+                outputTuple.add(te);
+            }
         }
         return outputTuple;
     }

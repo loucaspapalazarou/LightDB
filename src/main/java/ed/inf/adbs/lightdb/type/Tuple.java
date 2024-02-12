@@ -8,17 +8,36 @@ import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.FromItem;
 
+/**
+ * Represents a tuple in a database.
+ */
 public class Tuple {
-    private List<TupleElement> elements;
+    private List<TupleElement> elements; // List of elements in the tuple
 
+    /**
+     * Constructs a Tuple with the specified list of elements.
+     * 
+     * @param elements the list of elements
+     */
     public Tuple(List<TupleElement> elements) {
         this.elements = elements;
     }
 
+    /**
+     * Constructs an empty Tuple.
+     */
     public Tuple() {
         this.elements = new ArrayList<>();
     }
 
+    /**
+     * Constructs a Tuple based on the given columns, values, and FromItem.
+     * 
+     * @param columns  the list of columns
+     * @param values   the list of values
+     * @param fromItem the FromItem representing the table
+     * @throws Exception if the number of columns in schema does not match the data
+     */
     public Tuple(List<Column> columns, int[] values, FromItem fromItem) throws Exception {
         if (columns.size() != values.length) {
             throw new Exception("Number of columns in schema does not match data.");
@@ -37,14 +56,31 @@ public class Tuple {
         }
     }
 
+    /**
+     * Gets the list of elements in the tuple.
+     * 
+     * @return the list of elements
+     */
     public List<TupleElement> getElements() {
         return this.elements;
     }
 
+    /**
+     * Adds a TupleElement to the tuple.
+     * 
+     * @param te the TupleElement to add
+     */
     public void add(TupleElement te) {
         this.elements.add(te);
     }
 
+    /**
+     * Concatenates two tuples.
+     * 
+     * @param a the first tuple
+     * @param b the second tuple
+     * @return the concatenated tuple
+     */
     public static Tuple concatTuples(Tuple a, Tuple b) {
         Tuple t = new Tuple();
         t.elements.addAll(a.getElements());
@@ -52,6 +88,11 @@ public class Tuple {
         return t;
     }
 
+    /**
+     * Returns a string representation of the tuple.
+     * 
+     * @return a string representation of the tuple
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder("");
@@ -64,6 +105,12 @@ public class Tuple {
         return sb.toString();
     }
 
+    /**
+     * Gets the value of the tuple element corresponding to the given column.
+     * 
+     * @param column the column to search for
+     * @return the value of the element if found, otherwise null
+     */
     public Integer getValueAt(Column column) {
         for (TupleElement te : this.elements) {
             if (te.columnsMatch(column)) {
@@ -73,6 +120,11 @@ public class Tuple {
         return null;
     }
 
+    /**
+     * Returns a debug string representation of the tuple.
+     * 
+     * @return a debug string representation of the tuple
+     */
     public String toStringDebug() {
         String s = "[";
         for (TupleElement t : this.elements) {
@@ -82,6 +134,12 @@ public class Tuple {
         return s.replace(", ]", "]");
     }
 
+    /**
+     * Appends a new element to the tuple based on the given column and value.
+     * 
+     * @param c   the column
+     * @param val the value
+     */
     public void append(Column c, int val) {
         String tableName = c.getTable().getName();
         String columnName = c.getColumnName();
@@ -94,6 +152,12 @@ public class Tuple {
         this.elements.add(t);
     }
 
+    /**
+     * Gets the index of the tuple element corresponding to the given column.
+     * 
+     * @param c the column to search for
+     * @return the index of the element if found, otherwise null
+     */
     public Integer getIndexOf(Column c) {
         for (TupleElement te : this.elements) {
             if (te.columnsMatch(c)) {
@@ -103,14 +167,17 @@ public class Tuple {
         return null;
     }
 
+    /**
+     * Computes a hash code for the tuple.
+     * 
+     * @return a hash code value for this tuple
+     */
     @Override
     public int hashCode() {
-        // return Objects.hash(this.elements);
         int hash = 1;
         for (TupleElement element : this.elements) {
             hash = 31 * hash + Objects.hashCode(element);
         }
         return hash;
     }
-
 }

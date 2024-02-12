@@ -1,48 +1,87 @@
 package ed.inf.adbs.lightdb.type;
 
 import java.util.Objects;
-
 import net.sf.jsqlparser.schema.Column;
 
+/**
+ * Represents a tuple element. This class contains information about the column,
+ * the table, the possible alias and the value.
+ * 
+ */
 public class TupleElement {
 
-    private String columnName;
-    private String tableName;
-    private String alias;
-    private int value;
-    private boolean persistent;
+    private String columnName; // Name of the column
+    private String tableName; // Name of the table
+    private String alias; // Alias for the table
+    private int value; // Value of the element
+    private boolean persistent; // Indicates if the element should not be filtered out by projection
 
+    /**
+     * Constructs a TupleElement with the specified attributes.
+     * 
+     * @param columnName the name of the column
+     * @param tableName  the name of the table
+     * @param alias      the alias for the table
+     * @param value      the value of the element
+     */
     public TupleElement(String columnName, String tableName, String alias, int value) {
-        this.columnName = columnName;
-        this.tableName = tableName;
-        this.value = value;
-        this.alias = alias;
-        this.persistent = false;
+        this(columnName, tableName, alias, value, false);
     }
 
-    // persistent element indicates that the field should not be filtered out by
-    // projection
+    /**
+     * Constructs a TupleElement with the specified attributes.
+     * 
+     * @param columnName the name of the column
+     * @param tableName  the name of the table
+     * @param alias      the alias for the table
+     * @param value      the value of the element
+     * @param persistent indicates if the element should not be filtered out by
+     *                   projection
+     */
     public TupleElement(String columnName, String tableName, String alias, int value, boolean persistent) {
         this.columnName = columnName;
         this.tableName = tableName;
         this.value = value;
         this.alias = alias;
-        this.persistent = true;
+        this.persistent = persistent;
     }
 
+    /**
+     * Checks if the element is persistent.
+     * 
+     * @return true if the element is persistent, false otherwise
+     */
     public boolean isPersistent() {
         return this.persistent;
     }
 
-    public boolean columnsMatch(Column c) {
-        if (alias == null) {
-            return this.tableName.equals(c.getTable().getName())
-                    && this.columnName.equals(c.getColumnName());
-        }
-        return this.alias.equals(c.getTable().getName())
-                && this.columnName.equals(c.getColumnName());
+    /**
+     * Retrieves the value of the element.
+     * 
+     * @return the value of the element
+     */
+    public int getValue() {
+        return this.value;
     }
 
+    /**
+     * Checks if the column that the tuple element represents matches the given
+     * column. Takes into account the table name (or possibe alias) and column name.
+     * 
+     * @param c the column to compare with
+     * @return true if the columns match, false otherwise
+     */
+    public boolean columnsMatch(Column c) {
+        return (alias == null ? tableName : alias).equals(c.getTable().getName())
+                && columnName.equals(c.getColumnName());
+    }
+
+    /**
+     * Retrieves the full name of the element (table name + column name or alias +
+     * column name).
+     * 
+     * @return the full name of the element
+     */
     public String getFullName() {
         if (this.alias == null) {
             return this.tableName + "." + this.columnName;
@@ -50,14 +89,20 @@ public class TupleElement {
         return this.alias + "." + this.columnName;
     }
 
-    public int getValue() {
-        return this.value;
-    }
-
+    /**
+     * Returns a string representation of the value of the element.
+     * 
+     * @return a string representation of the value
+     */
     public String toString() {
         return Integer.toString(value);
     }
 
+    /**
+     * Returns a hash code value for the element.
+     * 
+     * @return a hash code value for this object
+     */
     @Override
     public int hashCode() {
         return Objects.hash(this.tableName, this.columnName, this.alias, this.value);

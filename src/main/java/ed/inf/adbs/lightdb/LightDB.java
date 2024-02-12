@@ -30,18 +30,17 @@ public class LightDB {
 
 		QueryPlan queryPlan = queryInterpreter.parseQuery(inputFile);
 
-		PrintStream filePrintStream = null;
-		try {
-			filePrintStream = new PrintStream(new FileOutputStream(outputFile));
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		}
-
+		PrintStream printStream = null;
 		if (DEBUG) {
-			queryPlan.evaluate(System.out);
+			printStream = System.out;
 		} else {
-			queryPlan.evaluate(filePrintStream);
+			try {
+				printStream = new PrintStream(new FileOutputStream(outputFile));
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			}
 		}
 
+		queryPlan.evaluate(printStream);
 	}
 }

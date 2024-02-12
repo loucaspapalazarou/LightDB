@@ -20,6 +20,7 @@ public class LightDB {
 			return;
 		}
 
+		final boolean DEBUG = false;
 		String databaseDir = args[0];
 		String inputFile = args[1];
 		String outputFile = args[2];
@@ -36,8 +37,11 @@ public class LightDB {
 			e.printStackTrace();
 		}
 
-		queryPlan.evaluate(filePrintStream);
-		// queryPlan.evaluate(System.out);
+		if (DEBUG) {
+			queryPlan.evaluate(System.out);
+		} else {
+			queryPlan.evaluate(filePrintStream);
+		}
 
 	}
 }

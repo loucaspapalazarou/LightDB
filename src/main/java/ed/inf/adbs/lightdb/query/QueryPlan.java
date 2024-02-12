@@ -8,12 +8,11 @@ public class QueryPlan {
 
     private Operator rootOperator;
 
-    public QueryPlan(Operator s) {
-        this.rootOperator = s;
+    public QueryPlan(Operator op) {
+        this.rootOperator = op;
     }
 
     public void evaluate(PrintStream printStream) {
         this.rootOperator.dump(printStream);
-        this.rootOperator.reset();
     }
 }

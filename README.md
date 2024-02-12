@@ -1,5 +1,7 @@
 # LightDB
 
+## Preamble
+
 The implementation of a lightweight database management system called LightDB. Part of the Advanced Database Systems course at the University of Edinburgh.
 
 ### How to run
@@ -18,4 +20,9 @@ or using the scripts
 ./build && ./run
 ```
 
-#### more docs to come...
+## Design
+
+## Operators
+
+## Optimizations
+

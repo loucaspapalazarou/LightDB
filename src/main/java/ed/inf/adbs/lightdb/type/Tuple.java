@@ -48,7 +48,7 @@ public class Tuple {
             TupleElement newTupleElement = null;
             Column c = columns.get(i);
             // there may not be an alias, so if there is one try to get it
-            String aliasName = fromItem.getAlias() == null ? fromItem.getAlias().getName() : null;
+            String aliasName = fromItem.getAlias() != null ? fromItem.getAlias().getName() : null;
             newTupleElement = new TupleElement(c.getColumnName(), c.getTable().getName(), aliasName, values[i]);
             this.elements.add(newTupleElement);
         }

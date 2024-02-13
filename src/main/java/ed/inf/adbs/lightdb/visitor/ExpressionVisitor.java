@@ -11,26 +11,67 @@ import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
 import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.util.deparser.ExpressionDeParser;
-import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.type.Tuple;
 
+/**
+ * The ExpressionVisitor class is responsible for visiting expressions and
+ * evaluating their truth value based on the given tuple.
+ */
 public class ExpressionVisitor extends ExpressionDeParser {
-    private Tuple tuple;
-    private boolean result;
 
-    public ExpressionVisitor(Tuple tuple, DatabaseCatalog catalog) {
+    private Tuple tuple; // Tuple used for evaluation
+    private boolean result; // Result of the evaluation
+
+    /**
+     * Constructs an ExpressionVisitor object.
+     * 
+     * @param tuple the tuple to evaluate expressions against
+     */
+    public ExpressionVisitor(Tuple tuple) {
         this.tuple = tuple;
-        this.result = true;
+        this.result = true; // Initialize result to true
     }
 
+    /**
+     * Gets the result of the expression evaluation
+     * 
+     * @return the result of the expression evaluation
+     */
     public boolean getResult() {
         return this.result;
     }
 
+    /**
+     * Updates the result based on the given expression. This system only supports
+     * (non-nested) conjunctive queries, therefore to update the result we can
+     * logically AND it with any new result.
+     * 
+     * @param expr the expression to update the result with
+     */
     private void updateResult(boolean expr) {
         this.result &= expr;
     }
 
+    /**
+     * Converts an Expression to a LongValue if the expression is a Column
+     * reference. If the expression is a LongValue, it is simply returned
+     * 
+     * @param expression the Expression to convert
+     * @param tuple      the tuple from which to retrieve values
+     * @return the LongValue representation of the expression
+     */
+    private LongValue expressionToValue(Expression expression, Tuple tuple) {
+        if (expression instanceof LongValue) {
+            return (LongValue) expression;
+        }
+        return new LongValue((tuple.getValueAt((Column) expression)).longValue());
+    }
+
+    /**
+     * Visits an EqualsTo expression.
+     * 
+     * @param equalsTo the EqualsTo expression to visit
+     */
     @Override
     public void visit(EqualsTo equalsTo) {
         LongValue leftValue = expressionToValue(equalsTo.getLeftExpression(), this.tuple);
@@ -38,6 +79,11 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftValue.getValue() == rightValue.getValue());
     }
 
+    /**
+     * Visits a NotEqualsTo expression.
+     * 
+     * @param notEqualsTo the NotEqualsTo expression to visit
+     */
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
         LongValue leftValue = expressionToValue(notEqualsTo.getLeftExpression(), tuple);
@@ -45,6 +91,11 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftValue.getValue() != rightValue.getValue());
     }
 
+    /**
+     * Visits a MinorThan expression.
+     * 
+     * @param minorThan the MinorThan expression to visit
+     */
     @Override
     public void visit(MinorThan minorThan) {
         LongValue leftValue = expressionToValue(minorThan.getLeftExpression(), tuple);
@@ -52,6 +103,11 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftValue.getValue() < rightValue.getValue());
     }
 
+    /**
+     * Visits a MinorThanEquals expression.
+     * 
+     * @param minorThanEquals the MinorThanEquals expression to visit
+     */
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
         LongValue leftValue = expressionToValue(minorThanEquals.getLeftExpression(), tuple);
@@ -59,6 +115,11 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftValue.getValue() <= rightValue.getValue());
     }
 
+    /**
+     * Visits a GreaterThan expression.
+     * 
+     * @param greaterThan the GreaterThan expression to visit
+     */
     @Override
     public void visit(GreaterThan greaterThan) {
         LongValue leftValue = expressionToValue(greaterThan.getLeftExpression(), tuple);
@@ -66,6 +127,11 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftValue.getValue() > rightValue.getValue());
     }
 
+    /**
+     * Visits a GreaterThanEquals expression.
+     * 
+     * @param greaterThanEquals the GreaterThanEquals expression to visit
+     */
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
         LongValue leftValue = expressionToValue(greaterThanEquals.getLeftExpression(), tuple);
@@ -73,6 +139,11 @@ public class ExpressionVisitor extends ExpressionDeParser {
         updateResult(leftValue.getValue() >= rightValue.getValue());
     }
 
+    /**
+     * Visits an AndExpression.
+     * 
+     * @param andExpression the AndExpression to visit
+     */
     @Override
     public void visit(AndExpression andExpression) {
         Expression leftExpression = andExpression.getLeftExpression();
@@ -84,12 +155,5 @@ public class ExpressionVisitor extends ExpressionDeParser {
         boolean rightResult = getResult();
 
         updateResult(leftResult && rightResult);
-    }
-
-    private LongValue expressionToValue(Expression expression, Tuple tuple) {
-        if (expression instanceof LongValue) {
-            return (LongValue) expression;
-        }
-        return new LongValue((tuple.getValueAt((Column) expression)).longValue());
     }
 }

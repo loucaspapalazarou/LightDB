@@ -69,8 +69,7 @@ public class QueryInterpreter {
             // Optional where clause
             Expression whereExpression = select.getWhere();
             if (whereExpression != null) {
-                SelectOperator selectOperator = new SelectOperator(rootOperator,
-                        whereExpression, this.catalog);
+                SelectOperator selectOperator = new SelectOperator(rootOperator, whereExpression);
                 rootOperator = selectOperator;
             }
 
@@ -86,7 +85,7 @@ public class QueryInterpreter {
                     // join, but we cannot know that at this point, thus we create a select operator
                     // regardless
                     if (whereExpression != null) {
-                        right = new SelectOperator(right, whereExpression, this.catalog);
+                        right = new SelectOperator(right, whereExpression);
                     }
                     // The root operator is updated with a join operator and the left child is set
                     // at the previous root and the right child is the new created child. Using this
@@ -95,7 +94,7 @@ public class QueryInterpreter {
                     // child, it is ensured that no unessecary tuples will be being joined. This is
                     // done to avoid computing a cross product of all tables and filtering tuples
                     // afterward, resulting in unessecary computation.
-                    rootOperator = new JoinOperator(rootOperator, right, whereExpression, this.catalog);
+                    rootOperator = new JoinOperator(rootOperator, right, whereExpression);
                 }
             }
 
@@ -130,8 +129,7 @@ public class QueryInterpreter {
                 }
             }
             if (includeProjection) {
-                ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator,
-                        select);
+                ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select);
                 rootOperator = projectionOperator;
             }
 

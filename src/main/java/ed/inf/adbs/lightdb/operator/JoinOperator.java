@@ -1,6 +1,5 @@
 package ed.inf.adbs.lightdb.operator;
 
-import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.type.Tuple;
 import ed.inf.adbs.lightdb.visitor.ExpressionVisitor;
 import net.sf.jsqlparser.expression.Expression;
@@ -10,15 +9,13 @@ public class JoinOperator extends Operator {
     private Operator left;
     private Operator right;
     private Expression expression;
-    private DatabaseCatalog catalog;
     private Tuple currentLeftTuple;
     private ExpressionVisitor expressionVisitor;
 
-    public JoinOperator(Operator left, Operator right, Expression expression, DatabaseCatalog catalog) {
+    public JoinOperator(Operator left, Operator right, Expression expression) {
         this.left = left;
         this.right = right;
         this.expression = expression;
-        this.catalog = catalog;
         this.currentLeftTuple = null;
     }
 
@@ -67,7 +64,7 @@ public class JoinOperator extends Operator {
     }
 
     public boolean evaluateExpression(Tuple tuple) {
-        expressionVisitor = new ExpressionVisitor(tuple, catalog);
+        expressionVisitor = new ExpressionVisitor(tuple);
         this.expression.accept(expressionVisitor);
         return this.expressionVisitor.getResult();
     }

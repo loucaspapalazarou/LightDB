@@ -1,1 +1,1 @@
-SELECT * FROM Reserves R WHERE R.H > 102 GROUP BY R.H;
+SELECT * FROM Sailors;

@@ -14,14 +14,13 @@ import ed.inf.adbs.lightdb.query.QueryPlan;
  */
 public class LightDB {
 
-	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		if (args.length != 3) {
 			System.err.println("Usage: LightDB database_dir input_file output_file");
 			return;
 		}
 
-		final boolean DEBUG = true;
+		final boolean DEBUG = false;
 		String databaseDir = args[0];
 		String inputFile = args[1];
 		String outputFile = args[2];

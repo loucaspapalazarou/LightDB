@@ -15,7 +15,6 @@ public class SortOperator extends Operator {
     private int index;
     private List<OrderByElement> orderByElements;
 
-    // FIX, CAN SORT BY MULTIPLE
     public SortOperator(Operator child, List<OrderByElement> orderByElements) {
         this.child = child;
         this.index = 0;
@@ -71,16 +70,3 @@ public class SortOperator extends Operator {
         });
     }
 }
-
-// String x1 = ((Person) o1).getName();
-// String x2 = ((Person) o2).getName();
-// int sComp = x1.compareTo(x2);
-
-// if(sComp!=0)
-// {
-// return sComp;
-// }
-
-// Integer x1 = ((Person) o1).getAge();
-// Integer x2 = ((Person) o2).getAge();return x1.compareTo(x2)
-// ;

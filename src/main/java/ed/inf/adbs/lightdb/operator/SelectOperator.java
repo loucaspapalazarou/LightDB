@@ -12,7 +12,6 @@ import net.sf.jsqlparser.expression.Expression;
 public class SelectOperator extends Operator {
 
     private Operator child; // Child operator
-    private Tuple currentTuple; // Current tuple being evaluated
     private Expression expression; // Expression to evaluate
     private ExpressionVisitor expressionVisitor; // Expression visitor to evaluate expressions
 
@@ -40,8 +39,7 @@ public class SelectOperator extends Operator {
                 return null;
             }
             if (evaluateExpression(nextTuple)) {
-                this.currentTuple = nextTuple;
-                return this.currentTuple;
+                return nextTuple;
             }
         }
     }
@@ -73,7 +71,6 @@ public class SelectOperator extends Operator {
      */
     @Override
     public void reset() {
-        this.currentTuple = null;
         this.child.reset();
     }
 }

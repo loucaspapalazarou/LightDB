@@ -14,6 +14,7 @@ import ed.inf.adbs.lightdb.query.QueryPlan;
  */
 public class LightDB {
 
+	@SuppressWarnings("resource")
 	public static void main(String[] args) {
 		if (args.length != 3) {
 			System.err.println("Usage: LightDB database_dir input_file output_file");
@@ -25,11 +26,18 @@ public class LightDB {
 		String inputFile = args[1];
 		String outputFile = args[2];
 
+		// initialize catalog
 		DatabaseCatalog catalog = new DatabaseCatalog(databaseDir);
+
+		// initialize interpreter
 		QueryInterpreter queryInterpreter = new QueryInterpreter(catalog);
 
+		// parge the query and create the evaluation plan
 		QueryPlan queryPlan = queryInterpreter.parseQuery(inputFile);
 
+		// if the debug flag is set to true, the query plan will be evaluated
+		// with its result being dumped in stdout. Otherwise it will be stored
+		// in the specified output file
 		PrintStream printStream = null;
 		if (DEBUG) {
 			printStream = System.out;
@@ -41,6 +49,7 @@ public class LightDB {
 			}
 		}
 
+		// evaluate to the specified stream
 		queryPlan.evaluate(printStream);
 
 	}

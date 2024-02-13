@@ -9,27 +9,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import net.sf.jsqlparser.expression.Alias;
-// import ed.inf.adbs.lightdb.types.Table;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
-import net.sf.jsqlparser.statement.select.FromItem;
-import net.sf.jsqlparser.statement.select.Join;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 
+/**
+ * The DatabaseCatalog class represents a catalog that stores information about
+ * tables and their columns
+ * in a database.
+ */
 public class DatabaseCatalog {
 
     private String dataDir;
     private Map<Table, List<Column>> tables;
-    private Map<Alias, Table> aliases;
 
+    /**
+     * Constructs a DatabaseCatalog object with the specified database directory.
+     * 
+     * @param databaseDir the directory where the database files are stored
+     */
     public DatabaseCatalog(String databaseDir) {
         this.dataDir = databaseDir + "/data/";
         this.tables = new HashMap<>();
-        this.aliases = new HashMap<>();
         loadSchemaFromFile(databaseDir + "/schema.txt");
     }
 
+    /**
+     * Loads table schema information from the specified schema file.
+     * 
+     * @param schemaFilePath the path to the schema file
+     */
     private void loadSchemaFromFile(String schemaFilePath) {
         try (BufferedReader br = new BufferedReader(new FileReader(schemaFilePath))) {
             String line;
@@ -47,29 +55,22 @@ public class DatabaseCatalog {
         }
     }
 
-    public void addAliases(PlainSelect select) {
-        FromItem fromItem = select.getFromItem();
-        Alias fromAlias = fromItem.getAlias();
-        if (fromAlias != null) {
-            this.aliases.put(fromItem.getAlias(), (Table) fromItem);
-        }
-        List<Join> joins = select.getJoins();
-        if (joins == null) {
-            return;
-        }
-        Alias joinAlias;
-        for (Join join : joins) {
-            joinAlias = join.getFromItem().getAlias();
-            if (joinAlias != null) {
-                this.aliases.put(join.getFromItem().getAlias(), (Table) join.getFromItem());
-            }
-        }
-    }
-
+    /**
+     * Gets the directory path for the specified table.
+     * 
+     * @param table the name of the table
+     * @return the directory path for the table's data file
+     */
     public String getTableDir(String table) {
         return this.dataDir + table + ".csv";
     }
 
+    /**
+     * Gets all columns for the specified table.
+     * 
+     * @param table the table object
+     * @return a list of columns for the specified table
+     */
     public List<Column> getAllColumns(Table table) {
         for (Entry<Table, List<Column>> t : this.tables.entrySet()) {
             if (t.getKey().getName().equals(table.getName())) {
@@ -78,5 +79,4 @@ public class DatabaseCatalog {
         }
         return null;
     }
-
 }

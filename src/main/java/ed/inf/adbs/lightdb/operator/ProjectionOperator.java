@@ -23,7 +23,7 @@ public class ProjectionOperator extends Operator {
         for (SelectItem<?> selectItem : this.select.getSelectItems()) {
             if (!(selectItem.getExpression() instanceof Function)) {
                 c = (Column) selectItem.getExpression();
-                outputTuple.append(c, initialTuple.getValueAt(c));
+                outputTuple.add(c, initialTuple.getValueAt(c));
             }
         }
         for (TupleElement te : initialTuple.getElements()) {

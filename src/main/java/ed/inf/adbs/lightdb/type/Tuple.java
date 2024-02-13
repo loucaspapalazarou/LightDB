@@ -8,7 +8,9 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.FromItem;
 
 /**
- * Represents a tuple in a database.
+ * Represents a tuple in a database. It serves as a representation of the tuples
+ * that the operators retrieve and manipulate. Provides methods for creation,
+ * addition, index/element fetcing etc.
  */
 public class Tuple {
     private List<TupleElement> elements; // List of elements in the tuple
@@ -45,11 +47,8 @@ public class Tuple {
         for (int i = 0; i < columns.size(); i++) {
             TupleElement newTupleElement = null;
             Column c = columns.get(i);
-            String aliasName = null;
-            Alias alias = fromItem.getAlias();
-            if (alias != null) {
-                aliasName = alias.getName();
-            }
+            // there may not be an alias, so if there is one try to get it
+            String aliasName = fromItem.getAlias() == null ? fromItem.getAlias().getName() : null;
             newTupleElement = new TupleElement(c.getColumnName(), c.getTable().getName(), aliasName, values[i]);
             this.elements.add(newTupleElement);
         }
@@ -62,15 +61,6 @@ public class Tuple {
      */
     public List<TupleElement> getElements() {
         return this.elements;
-    }
-
-    /**
-     * Adds a TupleElement to the tuple.
-     * 
-     * @param te the TupleElement to add
-     */
-    public void add(TupleElement te) {
-        this.elements.add(te);
     }
 
     /**
@@ -110,31 +100,13 @@ public class Tuple {
      * @param column the column to search for
      * @return the value of the element if found, otherwise null
      */
-    public Integer getValueAt(Column column) {
+    public Integer getValueAt(Column c) {
         for (TupleElement te : this.elements) {
-            if (te.columnsMatch(column)) {
+            if (te.columnsMatch(c)) {
                 return te.getValue();
             }
         }
         return null;
-    }
-
-    /**
-     * Appends a new element to the tuple based on the given column and value.
-     * 
-     * @param c   the column
-     * @param val the value
-     */
-    public void append(Column c, int val) {
-        String tableName = c.getTable().getName();
-        String columnName = c.getColumnName();
-        Alias alias = c.getTable().getAlias();
-        String aliasName = null;
-        if (alias != null) {
-            aliasName = alias.getName();
-        }
-        TupleElement t = new TupleElement(columnName, tableName, aliasName, val);
-        this.elements.add(t);
     }
 
     /**
@@ -150,6 +122,33 @@ public class Tuple {
             }
         }
         return null;
+    }
+
+    /**
+     * Adds a new element to the tuple based on the given column and value.
+     * 
+     * @param c   the column
+     * @param val the value
+     */
+    public void add(Column c, int val) {
+        String tableName = c.getTable().getName();
+        String columnName = c.getColumnName();
+        Alias alias = c.getTable().getAlias();
+        String aliasName = null;
+        if (alias != null) {
+            aliasName = alias.getName();
+        }
+        TupleElement te = new TupleElement(columnName, tableName, aliasName, val);
+        this.elements.add(te);
+    }
+
+    /**
+     * Adds a TupleElement to the tuple.
+     * 
+     * @param te the TupleElement to add
+     */
+    public void add(TupleElement te) {
+        this.elements.add(te);
     }
 
     /**

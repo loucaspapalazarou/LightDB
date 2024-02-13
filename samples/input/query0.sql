@@ -1,1 +1,1 @@
-SELECT R.H, R.G FROM Reserves R WHERE R.H > 102;
+SELECT * FROM Reserves R WHERE R.H > 102 GROUP BY R.H;

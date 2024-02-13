@@ -5,7 +5,7 @@ import net.sf.jsqlparser.schema.Column;
 
 /**
  * Represents a tuple element. This class contains information about the column,
- * the table, the possible alias and the value.
+ * the table, the possible alias and the value of the element.
  * 
  */
 public class TupleElement {
@@ -47,7 +47,11 @@ public class TupleElement {
     }
 
     /**
-     * Checks if the element is persistent.
+     * Return the persistent flag. This flag is only used when the query contains a
+     * SUM function. If this is the case, the projection operator must have a way of
+     * knowing that the SUM should not be filtered out. As the projection operator
+     * can only see a tuple and its columns, it cannot know which ones were a result
+     * of a SUM. This flag helps indicate that.
      * 
      * @return true if the element is persistent, false otherwise
      */
@@ -77,29 +81,18 @@ public class TupleElement {
     }
 
     /**
-     * Retrieves the full name of the element (table name + column name or alias +
-     * column name).
-     * 
-     * @return the full name of the element
-     */
-    public String getFullName() {
-        if (this.alias == null) {
-            return this.tableName + "." + this.columnName;
-        }
-        return this.alias + "." + this.columnName;
-    }
-
-    /**
      * Returns a string representation of the value of the element.
      * 
      * @return a string representation of the value
      */
+    @Override
     public String toString() {
         return Integer.toString(value);
     }
 
     /**
-     * Returns a hash code value for the element.
+     * Returns a hash code value for the element. All the attributes are
+     * taken into account as well as the value.
      * 
      * @return a hash code value for this object
      */

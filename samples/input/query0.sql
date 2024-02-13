@@ -1,1 +1,1 @@
-SELECT Reserves.H, SUM(Reserves.G * Reserves.G) FROM Reserves GROUP BY Reserves.H;
+SELECT R.H, R.G FROM Reserves R WHERE R.H > 102;

@@ -20,7 +20,7 @@ public class LightDB {
 			return;
 		}
 
-		final boolean DEBUG = false;
+		final boolean DEBUG = true;
 		String databaseDir = args[0];
 		String inputFile = args[1];
 		String outputFile = args[2];
@@ -42,5 +42,6 @@ public class LightDB {
 		}
 
 		queryPlan.evaluate(printStream);
+
 	}
 }

@@ -2,7 +2,6 @@ package ed.inf.adbs.lightdb.type;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.schema.Column;
@@ -121,20 +120,6 @@ public class Tuple {
     }
 
     /**
-     * Returns a debug string representation of the tuple.
-     * 
-     * @return a debug string representation of the tuple
-     */
-    public String toStringDebug() {
-        String s = "[";
-        for (TupleElement t : this.elements) {
-            s += t.getFullName() + "=" + t.getValue() + ", ";
-        }
-        s += "]";
-        return s.replace(", ]", "]");
-    }
-
-    /**
      * Appends a new element to the tuple based on the given column and value.
      * 
      * @param c   the column
@@ -168,16 +153,12 @@ public class Tuple {
     }
 
     /**
-     * Computes a hash code for the tuple.
+     * Computes a hash code for the tuple based on the hashcode of its elements
      * 
      * @return a hash code value for this tuple
      */
     @Override
     public int hashCode() {
-        int hash = 1;
-        for (TupleElement element : this.elements) {
-            hash = 31 * hash + Objects.hashCode(element);
-        }
-        return hash;
+        return this.elements.hashCode();
     }
 }

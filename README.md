@@ -54,7 +54,27 @@ The Join strategy is described in the `QueryInterpreter`, at section of the code
 
 ## Task 2
 
+To turn on the optimizations, a flag is defined in `LightDB.java`.
+
+```java
+final boolean OPTIMIZED;
+```
+
+If set to `true`, the query interpreter will use the `createQueryPlanOptimized` method to create the query plan.
+If set to `false`, the `createQueryPlan` method will be used.
+
+Both of these methods are defined in the `QueryInterpreter` class.
+
+### Optimizations
+
+#### Sort Merge Join
+
+#### Other optim...
+
 ***TODO***
-- [ ] Do optimizations
+- [ ] Optimize order of joins
+- [ ] Early projection
+- [ ] Early distinct
+- [ ] Sort merge join
 - [ ] Explain them
 

@@ -21,6 +21,7 @@ public class LightDB {
 		}
 
 		final boolean DEBUG = true;
+		final boolean OPTIMIZED = false;
 
 		String databaseDir = args[0];
 		String inputFile = args[1];
@@ -32,10 +33,15 @@ public class LightDB {
 		// initialize interpreter
 		QueryInterpreter queryInterpreter = new QueryInterpreter(catalog);
 
-		// parge the query and create the evaluation plan
-		QueryPlan queryPlan = queryInterpreter.createQueryPlan(inputFile);
+		// parse the query and create the evaluation plan based on optimization flag
+		QueryPlan queryPlan;
+		if (OPTIMIZED) {
+			queryPlan = queryInterpreter.createQueryPlanOptimized(inputFile);
+		} else {
+			queryPlan = queryInterpreter.createQueryPlan(inputFile);
+		}
 
-		// QueryPlan queryPlanOptimized = queryInterpreter.createQueryPlan(inputFile);
+		// QueryPlan
 
 		// if the debug flag is set to true, the query plan will be evaluated
 		// with its result being dumped in stdout. Otherwise it will be stored

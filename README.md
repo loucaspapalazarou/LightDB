@@ -1,26 +1,40 @@
 # ADBS CW - LightDB
 
-Loucas Papalazarou\
-s2567498
+*The implementation of a lightweight database management system called LightDB as part of the Advanced Database Systems course at the University of Edinburgh.*
 
-## Preamble
+***Loucas Papalazarou***
+***s2567498***
 
-The implementation of a lightweight database management system called LightDB. Part of the Advanced Database Systems course at the University of Edinburgh.
+---
 
+### General Design & Comments
+
+***TODO***
+- [ ] What is done and what is not etc.
+ 
 ### Build & Run
-Currently, I have the maven binaries downloaded inside my repository. Therefore, I can use `build.sh` to build the project and `run.sh` to run.
+Currently, I have the maven binaries downloaded inside my repository. Therefore, I can use `build.sh` to build the project and `run.sh` to run. `run.sh` simply runs the program using `query0.sql`. 
 
-```
+```bash
 build.sh && run.sh
 ```
 
-## General Design
+### Debug Mode
+
+Inside the `LightDB.java` file there is a line of code denoting the debug mode.
+
+```java
+final boolean DEBUG;
+```
+
+If `DEBUG` is set to `true`, the output of the query is shown on standard output.
+If `DEBUG` is `false`, the output is written in the specified file.
 
 ## Task 1
 
 ### Join Strategy
 
-The Join strategy is described in the `QueryInterpreter`, in the part where the joins are handled. This section will also provide the strategy in more clearly explained.
+The Join strategy is described in the `QueryInterpreter`, at section of the code where the joins are handled. This section explains that strategy in detail.
 
 - When the time comes to handle any joins, we already have the root operator.
 - The join tables are given as a list of tables
@@ -39,4 +53,8 @@ The Join strategy is described in the `QueryInterpreter`, in the part where the 
 - It is also a `left-deep` tree because any new operator is placed as the right child of the root operator and the previous root as the left.
 
 ## Task 2
+
+***TODO***
+- [ ] Do optimizations
+- [ ] Explain them
 

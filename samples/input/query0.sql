@@ -1,1 +1,1 @@
-SELECT * FROM Sailors;
+SELECT * FROM Test T, Sailors WHERE T.T1 > Sailors.B;

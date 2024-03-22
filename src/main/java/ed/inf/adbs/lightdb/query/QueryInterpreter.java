@@ -48,7 +48,7 @@ public class QueryInterpreter {
      * @param fileName the path to the file containing the SQL query
      * @return the query execution plan
      */
-    public QueryPlan parseQuery(String fileName) {
+    public QueryPlan createQueryPlan(String fileName) {
         try {
             // Parse using JSQLParser
             Statement statement = CCJSqlParserUtil.parse(new FileReader(fileName));
@@ -150,6 +150,11 @@ public class QueryInterpreter {
             System.err.println("Exception occurred during parsing");
             e.printStackTrace();
         }
+        return null;
+    }
+
+    public QueryPlan createQueryPlanOptimized(String fileName) {
+        String optimizationLecture = "https://opencourse.inf.ed.ac.uk/sites/default/files/https/opencourse.inf.ed.ac.uk/adbs/2024/lecture21-query-optimisation-plan-space-example_0.pdf";
         return null;
     }
 }

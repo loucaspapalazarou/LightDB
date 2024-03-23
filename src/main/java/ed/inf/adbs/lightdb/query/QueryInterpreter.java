@@ -1,15 +1,26 @@
 package ed.inf.adbs.lightdb.query;
 
 import java.io.FileReader;
+import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.RootPaneContainer;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.operator.*;
 
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
+import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
+import net.sf.jsqlparser.expression.operators.relational.OldOracleJoinBinaryExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.GroupByElement;
@@ -63,14 +74,12 @@ public class QueryInterpreter {
             Operator rootOperator = null;
 
             // Mandatory scan
-            ScanOperator scanOperator = new ScanOperator(select.getFromItem(), this.catalog);
-            rootOperator = scanOperator;
+            rootOperator = new ScanOperator(select.getFromItem(), this.catalog);
 
             // Optional where clause
             Expression whereExpression = select.getWhere();
             if (whereExpression != null) {
-                SelectOperator selectOperator = new SelectOperator(rootOperator, whereExpression);
-                rootOperator = selectOperator;
+                rootOperator = new SelectOperator(rootOperator, whereExpression);
             }
 
             // Handle joins
@@ -113,14 +122,12 @@ public class QueryInterpreter {
             GroupByElement groupByElement = select.getGroupBy();
             // If either element is present, a sum operator is needed.
             if (groupByElement != null || sumFunction != null) {
-                SumOperator sumOperator = new SumOperator(rootOperator, groupByElement, sumFunction);
-                rootOperator = sumOperator;
+                rootOperator = new SumOperator(rootOperator, groupByElement, sumFunction);
             }
 
             // Optional projection. In the case of '*' the operator handles the tuple
             // appropriately
-            ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select);
-            rootOperator = projectionOperator;
+            rootOperator = new ProjectionOperator(rootOperator, select);
 
             // Optional order by
             List<OrderByElement> orderByElements = select.getOrderByElements();
@@ -157,25 +164,18 @@ public class QueryInterpreter {
             Operator rootOperator = null;
 
             // Mandatory scan
-            ScanOperator scanOperator = new ScanOperator(select.getFromItem(), this.catalog);
-            rootOperator = scanOperator;
+            rootOperator = new ScanOperator(select.getFromItem(), this.catalog);
 
             // OPTIMIZATION: Early Projection
-            // Selection columns must be a subset of projection columns
-            // TODO
-            boolean earlyProjection = false;
-            /*
-             * if(selection columns subset of projection cols){
-             * root = new projection
-             * earlyproject = true;
-             * }
-             */
+            boolean earlyProjection = QueryUtils.isEarlyProjectPossible(select);
+            if (earlyProjection) {
+                rootOperator = new ProjectionOperator(rootOperator, select);
+            }
 
             // Optional where clause
             Expression whereExpression = select.getWhere();
             if (whereExpression != null) {
-                SelectOperator selectOperator = new SelectOperator(rootOperator, whereExpression);
-                rootOperator = selectOperator;
+                rootOperator = new SelectOperator(rootOperator, whereExpression);
             }
 
             // Handle joins
@@ -189,6 +189,9 @@ public class QueryInterpreter {
                     // operator on top of its scan. The WHERE may not reference any column of the
                     // join, but we cannot know that at this point, thus we create a select operator
                     // regardless
+                    if (earlyProjection) {
+                        right = new ProjectionOperator(right, select);
+                    }
                     if (whereExpression != null) {
                         right = new SelectOperator(right, whereExpression);
                     }
@@ -218,15 +221,13 @@ public class QueryInterpreter {
             GroupByElement groupByElement = select.getGroupBy();
             // If either element is present, a sum operator is needed.
             if (groupByElement != null || sumFunction != null) {
-                SumOperator sumOperator = new SumOperator(rootOperator, groupByElement, sumFunction);
-                rootOperator = sumOperator;
+                rootOperator = new SumOperator(rootOperator, groupByElement, sumFunction);
             }
 
             // Optional projection. In the case of '*' the operator handles the tuple
             // appropriately
             if (!earlyProjection) {
-                ProjectionOperator projectionOperator = new ProjectionOperator(rootOperator, select);
-                rootOperator = projectionOperator;
+                rootOperator = new ProjectionOperator(rootOperator, select);
             }
 
             // Optional order by
@@ -248,4 +249,5 @@ public class QueryInterpreter {
         }
         return null;
     }
+
 }

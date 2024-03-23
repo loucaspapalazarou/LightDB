@@ -1,1 +1,1 @@
-SELECT S.A FROM Sailors S, Reserves R WHERE S.A = R.G;
+SELECT DISTINCT R.G FROM Reserves R;

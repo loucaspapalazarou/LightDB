@@ -101,12 +101,23 @@ public class Tuple {
      * @return the value of the element if found, otherwise null
      */
     public Integer getValueAt(Column c) {
+        // System.out.println("NEW CALL");
         for (TupleElement te : this.elements) {
+            // System.out.println(te.getFullName() + " " + c + " " + te.columnsMatch(c));
             if (te.columnsMatch(c)) {
                 return te.getValue();
             }
         }
         return null;
+    }
+
+    public String getFullName() {
+        String s = "(";
+        for (TupleElement te : this.elements) {
+            s += te.getFullName() + "=" + te.getValue() + ", ";
+        }
+        s += ")";
+        return s.replace(", )", ")");
     }
 
     /**

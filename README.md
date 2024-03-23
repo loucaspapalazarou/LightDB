@@ -21,7 +21,7 @@ build.sh && run.sh
 
 The `test.sh` script runs the code with all the queries from the `/samples/input/` directory and places the results in the `/samples/output/` directory.
 
-The `compare.sh` compares the contents of every file in `/samples/output/` to every corresponding file in `/samples/expected_output/`.
+The `compare.sh` script compares the contents of every file in `/samples/output/` to every corresponding file in `/samples/expected_output/`.
 
 ### Debug Mode
 
@@ -81,12 +81,9 @@ Explain...
 
 #### Sort Merge Join
 
-#### Other optim...
+Do and explain...
 
-***TODO***
-- [ ] Optimize order of joins
-- [ ] Early projection
-- [ ] Early distinct
-- [ ] Sort merge join
-- [ ] Explain them
+#### Join Order
+
+Do and explain...
 

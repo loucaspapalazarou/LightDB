@@ -90,6 +90,16 @@ public class TupleElement {
         return Integer.toString(value);
     }
 
+    public String getFullName() {
+        String prefix;
+        if (this.alias != null) {
+            prefix = this.alias;
+        } else {
+            prefix = this.tableName;
+        }
+        return prefix + "." + this.columnName;
+    }
+
     /**
      * Returns a hash code value for the element. All the attributes are
      * taken into account as well as the value.

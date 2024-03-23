@@ -4,6 +4,7 @@ import java.util.List;
 
 import ed.inf.adbs.lightdb.type.Tuple;
 import ed.inf.adbs.lightdb.type.TupleElement;
+import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.AllColumns;
@@ -51,14 +52,20 @@ public class ProjectionOperator extends Operator {
      */
     private Tuple processTuple(Tuple initialTuple) {
         Tuple outputTuple = new Tuple();
-        Column c;
+        Column column;
+        Expression expression;
         // Process each select item in the select items
         for (SelectItem<?> selectItem : this.selectItems) {
             // If the select item is not a function (i.e. a sum function), add the
             // corresponding column value to the output tuple
-            if (!(selectItem.getExpression() instanceof Function)) {
-                c = (Column) selectItem.getExpression();
-                outputTuple.add(c, initialTuple.getValueAt(c));
+            expression = selectItem.getExpression();
+            if (!(expression instanceof Function)) {
+                try {
+                    column = (Column) expression;
+                    outputTuple.add(column, initialTuple.getValueAt(column));
+                } catch (Exception e) {
+
+                }
             }
         }
         // Add persistent columns to the output tuple (i.e sum function results)

@@ -20,8 +20,8 @@ public class LightDB {
 			return;
 		}
 
-		final boolean DEBUG = true;
-		final boolean OPTIMIZED = false;
+		final boolean DEBUG = false;
+		final boolean OPTIMIZED = true;
 
 		String databaseDir = args[0];
 		String inputFile = args[1];

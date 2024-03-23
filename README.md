@@ -19,6 +19,10 @@ Currently, I have the maven binaries downloaded inside my repository. Therefore,
 build.sh && run.sh
 ```
 
+The `test.sh` script runs the code with all the queries from the `/samples/input/` directory and places the results in the `/samples/output/` directory.
+
+The `compare.sh` compares the contents of every file in `/samples/output/` to every corresponding file in `/samples/expected_output/`.
+
 ### Debug Mode
 
 Inside the `LightDB.java` file there is a line of code denoting the debug mode.
@@ -66,6 +70,14 @@ If set to `false`, the `createQueryPlan` method will be used.
 Both of these methods are defined in the `QueryInterpreter` class.
 
 ### Optimizations
+
+### Selection Pushdown
+
+Already implemented, exlpain...
+
+### Early Projection
+
+Explain...
 
 #### Sort Merge Join
 

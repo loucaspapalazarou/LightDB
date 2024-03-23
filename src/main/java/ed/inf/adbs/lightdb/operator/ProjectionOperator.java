@@ -6,6 +6,7 @@ import ed.inf.adbs.lightdb.type.Tuple;
 import ed.inf.adbs.lightdb.type.TupleElement;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
@@ -17,6 +18,7 @@ public class ProjectionOperator extends Operator {
 
     private Operator child; // Child operator
     private List<SelectItem<?>> selectItems;
+    private boolean needToProccessTuple;
 
     /**
      * Constructs a ProjectionOperator with the specified child operator and
@@ -28,6 +30,16 @@ public class ProjectionOperator extends Operator {
     public ProjectionOperator(Operator child, PlainSelect select) {
         this.child = child;
         this.selectItems = select.getSelectItems();
+        this.needToProccessTuple = true;
+
+        for (SelectItem<?> selectItem : this.selectItems) {
+            // If '*' in the selection, we don't need the ProjectionOperator, therefore set
+            // the flag to false
+            if (selectItem.getExpression() instanceof AllColumns) {
+                this.needToProccessTuple = false;
+                break;
+            }
+        }
     }
 
     /**
@@ -67,7 +79,7 @@ public class ProjectionOperator extends Operator {
     public Tuple getNextTuple() {
         Tuple nextTuple = this.child.getNextTuple();
         if (nextTuple != null) {
-            return this.processTuple(nextTuple);
+            return this.needToProccessTuple ? this.processTuple(nextTuple) : nextTuple;
         }
         return null;
     }

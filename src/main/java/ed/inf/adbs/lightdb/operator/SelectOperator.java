@@ -51,19 +51,12 @@ public class SelectOperator extends Operator {
      * @return true if the tuple satisfies the expression, false otherwise
      */
     public boolean evaluateExpression(Tuple tuple) {
-        expressionVisitor = new ExpressionVisitor(tuple);
-        try {
-            this.expression.accept(expressionVisitor);
-            return this.expressionVisitor.getResult();
-        } catch (Exception e) {
-            // Handle exception when where columns are not available yet. It might be the
-            // case that this method is called during a join and the columns in the
-            // expression do not exist in the current tuple. In this case an exception will
-            // be thrown. Trivially, this means that the tuple cannot be discarded as the
-            // result of the expression evaluation cannot be known, and thus the method
-            // returns true
+        if (expression == null) {
             return true;
         }
+        expressionVisitor = new ExpressionVisitor(tuple);
+        this.expression.accept(expressionVisitor);
+        return this.expressionVisitor.getResult();
     }
 
     /**

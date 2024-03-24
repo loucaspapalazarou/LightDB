@@ -3,14 +3,26 @@ package ed.inf.adbs.lightdb.query;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.expression.LongValue;
+import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
+import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
+import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
+import net.sf.jsqlparser.expression.operators.relational.GreaterThanEquals;
+import net.sf.jsqlparser.expression.operators.relational.MinorThan;
+import net.sf.jsqlparser.expression.operators.relational.MinorThanEquals;
+import net.sf.jsqlparser.expression.operators.relational.NotEqualsTo;
 import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
@@ -74,8 +86,68 @@ public class QueryUtils {
                 return false;
             }
         }
-
         return true;
+    }
+
+    private static void updateTableValues(ComparisonOperator operator, int value, Map<FromItem, Integer> tables) {
+        Expression left = operator.getLeftExpression();
+        Expression right = operator.getRightExpression();
+        String t1, t2;
+        Alias alias;
+        if (!(left instanceof LongValue)) {
+            // manip table
+            for (Map.Entry<FromItem, Integer> entry : tables.entrySet()) {
+                t1 = ((Column) left).getTable().getFullyQualifiedName();
+                alias = ((Table) entry.getKey()).getAlias();
+                if (alias == null) {
+                    t2 = ((Table) entry.getKey()).getFullyQualifiedName();
+                } else {
+                    t2 = ((Table) entry.getKey()).getAlias().getName();
+                }
+                if (t1.equals(t2)) {
+                    tables.merge(entry.getKey(), value, Integer::sum);
+                }
+            }
+        }
+        if (!(right instanceof LongValue)) {
+            // manip table
+            for (Map.Entry<FromItem, Integer> entry : tables.entrySet()) {
+                t1 = ((Column) left).getTable().getFullyQualifiedName();
+                alias = ((Table) entry.getKey()).getAlias();
+                if (alias == null) {
+                    t2 = ((Table) entry.getKey()).getFullyQualifiedName();
+                } else {
+                    t2 = ((Table) entry.getKey()).getAlias().getName();
+                }
+                if (t1.equals(t2)) {
+                    tables.merge(entry.getKey(), value, Integer::sum);
+                }
+            }
+        }
+    }
+
+    // find which tables are most affected by the where condition
+    public static void calculateJoinSelectivityOfTables(Map<FromItem, Integer> tables, Expression whereExpression) {
+        if (whereExpression == null) {
+            return;
+        }
+        if (whereExpression instanceof ComparisonOperator) {
+            boolean gt = whereExpression instanceof GreaterThan || whereExpression instanceof GreaterThanEquals;
+            boolean mt = whereExpression instanceof MinorThan || whereExpression instanceof MinorThanEquals;
+            boolean ne = whereExpression instanceof NotEqualsTo;
+            int value;
+            if (gt || mt || ne) {
+                value = 1;
+            } else {
+                value = 2;
+            }
+            updateTableValues((ComparisonOperator) whereExpression, value, tables);
+            return;
+        }
+        if (whereExpression instanceof BinaryExpression) {
+            calculateJoinSelectivityOfTables(tables, ((BinaryExpression) whereExpression).getLeftExpression());
+            calculateJoinSelectivityOfTables(tables, ((BinaryExpression) whereExpression).getRightExpression());
+        }
     }
 
 }

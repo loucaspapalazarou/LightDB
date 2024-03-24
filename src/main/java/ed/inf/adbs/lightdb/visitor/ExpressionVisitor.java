@@ -67,6 +67,13 @@ public class ExpressionVisitor extends ExpressionDeParser {
         return new LongValue((tuple.getValueAt((Column) expression)).longValue());
     }
 
+    private static boolean checkIfColumnIsAvailable(Expression expression, Tuple tuple) {
+        if (expression instanceof LongValue) {
+            return true;
+        }
+        return tuple.getValueAt((Column) expression) == null ? false : true;
+    }
+
     /**
      * Visits an EqualsTo expression.
      * 
@@ -74,6 +81,14 @@ public class ExpressionVisitor extends ExpressionDeParser {
      */
     @Override
     public void visit(EqualsTo equalsTo) {
+        if (!checkIfColumnIsAvailable(equalsTo.getLeftExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
+        if (!checkIfColumnIsAvailable(equalsTo.getRightExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
         LongValue leftValue = expressionToValue(equalsTo.getLeftExpression(), this.tuple);
         LongValue rightValue = expressionToValue(equalsTo.getRightExpression(), this.tuple);
         updateResult(leftValue.getValue() == rightValue.getValue());
@@ -86,6 +101,14 @@ public class ExpressionVisitor extends ExpressionDeParser {
      */
     @Override
     public void visit(NotEqualsTo notEqualsTo) {
+        if (!checkIfColumnIsAvailable(notEqualsTo.getLeftExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
+        if (!checkIfColumnIsAvailable(notEqualsTo.getRightExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
         LongValue leftValue = expressionToValue(notEqualsTo.getLeftExpression(), tuple);
         LongValue rightValue = expressionToValue(notEqualsTo.getRightExpression(), tuple);
         updateResult(leftValue.getValue() != rightValue.getValue());
@@ -98,6 +121,14 @@ public class ExpressionVisitor extends ExpressionDeParser {
      */
     @Override
     public void visit(MinorThan minorThan) {
+        if (!checkIfColumnIsAvailable(minorThan.getLeftExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
+        if (!checkIfColumnIsAvailable(minorThan.getRightExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
         LongValue leftValue = expressionToValue(minorThan.getLeftExpression(), tuple);
         LongValue rightValue = expressionToValue(minorThan.getRightExpression(), tuple);
         updateResult(leftValue.getValue() < rightValue.getValue());
@@ -110,6 +141,14 @@ public class ExpressionVisitor extends ExpressionDeParser {
      */
     @Override
     public void visit(MinorThanEquals minorThanEquals) {
+        if (!checkIfColumnIsAvailable(minorThanEquals.getLeftExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
+        if (!checkIfColumnIsAvailable(minorThanEquals.getRightExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
         LongValue leftValue = expressionToValue(minorThanEquals.getLeftExpression(), tuple);
         LongValue rightValue = expressionToValue(minorThanEquals.getRightExpression(), tuple);
         updateResult(leftValue.getValue() <= rightValue.getValue());
@@ -122,6 +161,14 @@ public class ExpressionVisitor extends ExpressionDeParser {
      */
     @Override
     public void visit(GreaterThan greaterThan) {
+        if (!checkIfColumnIsAvailable(greaterThan.getLeftExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
+        if (!checkIfColumnIsAvailable(greaterThan.getRightExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
         LongValue leftValue = expressionToValue(greaterThan.getLeftExpression(), tuple);
         LongValue rightValue = expressionToValue(greaterThan.getRightExpression(), tuple);
         updateResult(leftValue.getValue() > rightValue.getValue());
@@ -134,6 +181,14 @@ public class ExpressionVisitor extends ExpressionDeParser {
      */
     @Override
     public void visit(GreaterThanEquals greaterThanEquals) {
+        if (!checkIfColumnIsAvailable(greaterThanEquals.getLeftExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
+        if (!checkIfColumnIsAvailable(greaterThanEquals.getRightExpression(), this.tuple)) {
+            updateResult(true);
+            return;
+        }
         LongValue leftValue = expressionToValue(greaterThanEquals.getLeftExpression(), tuple);
         LongValue rightValue = expressionToValue(greaterThanEquals.getRightExpression(), tuple);
         updateResult(leftValue.getValue() >= rightValue.getValue());

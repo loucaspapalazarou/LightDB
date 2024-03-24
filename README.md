@@ -9,8 +9,9 @@
 
 ### General Design & Comments
 
-***TODO***
-- [ ] What is done and what is not etc.
+#### Known Bugs
+
+- When aliases are declared but not used the WHERE clause does not get executed. This affects Selections, Joins and the join optimization order.
  
 ### Build & Run
 Currently, I have the maven binaries downloaded inside my repository. Therefore, I can use `build.sh` to build the project and `run.sh` to run. `run.sh` simply runs the program using `query0.sql`. 

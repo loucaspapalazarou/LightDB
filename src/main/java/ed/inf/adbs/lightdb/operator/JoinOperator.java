@@ -61,7 +61,7 @@ public class JoinOperator extends Operator {
         // If both left and right tuples are not null, concatenate them
         Tuple mergedTuple = Tuple.concatTuples(this.currentLeftTuple, rightTuple);
         // If the merged tuple satisfies the join condition, return it
-        if (evaluateExpression(mergedTuple, this.expression)) {
+        if (evaluateExpression(mergedTuple)) {
             return mergedTuple;
         }
         // Otherwise, try again with the next right tuple
@@ -87,10 +87,11 @@ public class JoinOperator extends Operator {
      * @return true if the tuple satisfies the expression or expression cannot be
      *         evaluated, false otherwise
      */
-    public boolean evaluateExpression(Tuple tuple, Expression expression) {
+    public boolean evaluateExpression(Tuple tuple) {
         if (expression == null) {
             return true;
         }
+        // System.out.println(tuple + "\t" + this.expression);
         expressionVisitor = new ExpressionVisitor(tuple);
         this.expression.accept(expressionVisitor);
         return this.expressionVisitor.getResult();

@@ -1,28 +1,20 @@
 package ed.inf.adbs.lightdb.query;
 
 import java.io.FileReader;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import javax.swing.RootPaneContainer;
+import java.util.Map;
 
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.operator.*;
 
 import net.sf.jsqlparser.JSQLParserException;
-import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
-import net.sf.jsqlparser.expression.LongValue;
-import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
-import net.sf.jsqlparser.expression.operators.relational.ComparisonOperator;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.GreaterThan;
-import net.sf.jsqlparser.expression.operators.relational.OldOracleJoinBinaryExpression;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
-import net.sf.jsqlparser.schema.Column;
+import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.select.AllColumns;
+import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.GroupByElement;
 import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -149,6 +141,9 @@ public class QueryInterpreter {
         return null;
     }
 
+    /*
+     * OPTIMIZED
+     */
     public QueryPlan createQueryPlanOptimized(String fileName) {
         try {
             // Parse using JSQLParser
@@ -162,6 +157,17 @@ public class QueryInterpreter {
 
             // Initialize the root operator
             Operator rootOperator = null;
+
+            // create a list of the tables to be joined
+            // Collections.max(map.entrySet(), Map.Entry.comparingByValue()).getKey()
+            Map<FromItem, Integer> tables = new HashMap<>();
+            FromItem fromItem = select.getFromItem();
+            tables.put(fromItem, 0);
+            for (Join join : select.getJoins()) {
+                tables.put(join.getFromItem(), 0);
+            }
+            QueryUtils.calculateJoinSelectivityOfTables(tables, select.getWhere());
+            System.out.println(tables);
 
             // Mandatory scan
             rootOperator = new ScanOperator(select.getFromItem(), this.catalog);
@@ -185,23 +191,12 @@ public class QueryInterpreter {
                 for (Join join : joins) {
                     // Create a scan for that table, conceptually set it to the right branch
                     Operator right = new ScanOperator(join.getFromItem(), this.catalog);
-                    // If a WHERE is present, we set the operator of 'right' as a select
-                    // operator on top of its scan. The WHERE may not reference any column of the
-                    // join, but we cannot know that at this point, thus we create a select operator
-                    // regardless
                     if (earlyProjection) {
                         right = new ProjectionOperator(right, select);
                     }
                     if (whereExpression != null) {
                         right = new SelectOperator(right, whereExpression);
                     }
-                    // The root operator is updated with a join operator and the left child is set
-                    // at the previous root and the right child is the new created child. Using this
-                    // strategy, for each join table, we update the left child and thus end up with
-                    // a left-deep tree. As select operators are used on top of scans for each right
-                    // child, it is ensured that no unessecary tuples will be being joined. This is
-                    // done to avoid computing a cross product of all tables and filtering tuples
-                    // afterward, resulting in unessecary computation.
                     rootOperator = new JoinOperator(rootOperator, right, whereExpression);
                 }
             }

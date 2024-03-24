@@ -101,7 +101,7 @@ public class Tuple {
      * @return the value of the element if found, otherwise null
      */
     public Integer getValueAt(Column c) {
-        // System.out.println("NEW CALL");
+        // System.out.println("NEW");
         for (TupleElement te : this.elements) {
             // System.out.println(te.getFullName() + " " + c + " " + te.columnsMatch(c));
             if (te.columnsMatch(c)) {

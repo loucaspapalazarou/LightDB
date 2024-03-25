@@ -1,10 +1,9 @@
 package ed.inf.adbs.lightdb.query;
 
 import java.io.FileReader;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
 import ed.inf.adbs.lightdb.catalog.DatabaseCatalog;
 import ed.inf.adbs.lightdb.operator.*;
 
@@ -12,8 +11,10 @@ import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
+import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.GroupByElement;
 import net.sf.jsqlparser.statement.select.Join;
@@ -119,7 +120,7 @@ public class QueryInterpreter {
 
             // Optional projection. In the case of '*' the operator handles the tuple
             // appropriately
-            rootOperator = new ProjectionOperator(rootOperator, select);
+            rootOperator = new ProjectionOperator(rootOperator, select.getSelectItems());
 
             // Optional order by
             List<OrderByElement> orderByElements = select.getOrderByElements();
@@ -141,8 +142,35 @@ public class QueryInterpreter {
         return null;
     }
 
-    /*
-     * OPTIMIZED
+    /**
+     * This function behaves the same as createQueryPlanOptimized but with some
+     * optimizations.
+     * 
+     * 1. Join Order
+     * At a high level the Join order is handled like so: The WHERE clause is
+     * analyzed and a value is assigned to each table based of how selective the
+     * expressions in WHERE are. Each inequalitie (>, <, >=, <=, !=) gets a value of
+     * 1 and the equality (=) a value of 2. The value of each table is added up and
+     * we end up with an estimate on the selectivity of the query based on tables.
+     * We then perform the joins in descending order of table selectiviity. This
+     * approach is a heuristic way to minimize the intermideate tuples because of
+     * the fact that Selection is performed before joins. However, if the query
+     * requested all the columns of the resulting tuple, we have an ordering
+     * problem because of the join order. To address this, we save a copy of the
+     * requested join order and if the selection is of type '*', we simply expand
+     * the '*' to all columns of all tables. Then, the projection operator handles
+     * the reordering of the tuple elements.
+     * 
+     * 2. Early Projection
+     * The query is checked to see whether is possible to perform projection before
+     * joins. Although this will not reduce the number of tuples proccessed, it will
+     * reduce their "width" and essentially save some procssing memory. An early
+     * projection is possible if the columns referenced in the WHERE expression are
+     * a subset of the ones in the SELECT. If that is the case, we simply perform
+     * the Projection at an earlier stage.
+     * 
+     * @param fileName the path to the file containing the SQL query
+     * @return the query execution plan
      */
     public QueryPlan createQueryPlanOptimized(String fileName) {
         try {
@@ -158,46 +186,95 @@ public class QueryInterpreter {
             // Initialize the root operator
             Operator rootOperator = null;
 
-            // create a list of the tables to be joined
-            // Collections.max(map.entrySet(), Map.Entry.comparingByValue()).getKey()
-            Map<FromItem, Integer> tables = new HashMap<>();
-            FromItem fromItem = select.getFromItem();
-            tables.put(fromItem, 0);
-            for (Join join : select.getJoins()) {
-                tables.put(join.getFromItem(), 0);
-            }
-            QueryUtils.calculateJoinSelectivityOfTables(tables, select.getWhere());
-            System.out.println(tables);
-
-            // Mandatory scan
-            rootOperator = new ScanOperator(select.getFromItem(), this.catalog);
-
-            // OPTIMIZATION: Early Projection
-            boolean earlyProjection = QueryUtils.isEarlyProjectPossible(select);
-            if (earlyProjection) {
-                rootOperator = new ProjectionOperator(rootOperator, select);
-            }
-
-            // Optional where clause
+            // Other initializations
             Expression whereExpression = select.getWhere();
-            if (whereExpression != null) {
-                rootOperator = new SelectOperator(rootOperator, whereExpression);
-            }
-
-            // Handle joins
+            boolean earlyProjection = QueryUtils.isEarlyProjectPossible(select);
+            List<SelectItem<?>> expandedItems = null;
             List<Join> joins = select.getJoins();
+            List<SelectItem<?>> selectItems = select.getSelectItems();
+
+            // the joins can only be reordered if they exist
             if (joins != null) {
-                // Each join in the join list is essentially a table
-                for (Join join : joins) {
-                    // Create a scan for that table, conceptually set it to the right branch
-                    Operator right = new ScanOperator(join.getFromItem(), this.catalog);
+                // keep track of all the tables
+                ArrayList<FromItem> tables = new ArrayList<>();
+                // keep track of each table's heuristic selectivity value
+                ArrayList<Integer> values = new ArrayList<>();
+                // populate the lists
+                FromItem fromItem = select.getFromItem();
+                tables.add(fromItem);
+                values.add(0);
+                for (Join join : select.getJoins()) {
+                    tables.add(join.getFromItem());
+                    values.add(0);
+                }
+
+                QueryUtils.calculateJoinSelectivityOfTables(tables, values, select.getWhere());
+
+                // make a copy of the join order that the user requested
+                ArrayList<FromItem> initialJoinOrder = new ArrayList<>();
+                for (FromItem t : tables) {
+                    initialJoinOrder.add(t);
+                }
+
+                // we now need a root operator to start adding right operators to
+                // the first operator is simply the one with the highest value
+                int maxIdx;
+                maxIdx = values.indexOf(Collections.max(values));
+                rootOperator = new ScanOperator(tables.get(maxIdx), this.catalog);
+                if (earlyProjection) {
+                    rootOperator = new ProjectionOperator(rootOperator, selectItems);
+                }
+                if (whereExpression != null) {
+                    rootOperator = new SelectOperator(rootOperator, whereExpression);
+                }
+                // we remove the tables we already used
+                tables.remove(maxIdx);
+                values.remove(maxIdx);
+
+                // go thourgh the remaining tables, adding an operator corresponding to it
+                Operator rightOperator;
+                while (tables.size() > 0) {
+                    maxIdx = values.indexOf(Collections.max(values));
+                    // create the table's scan
+                    rightOperator = new ScanOperator(tables.get(maxIdx), this.catalog);
+                    // add possible early join
                     if (earlyProjection) {
-                        right = new ProjectionOperator(right, select);
+                        rightOperator = new ProjectionOperator(rightOperator, selectItems);
                     }
+                    // add possible selection
                     if (whereExpression != null) {
-                        right = new SelectOperator(right, whereExpression);
+                        rightOperator = new SelectOperator(rightOperator, whereExpression);
                     }
-                    rootOperator = new JoinOperator(rootOperator, right, whereExpression);
+                    // remove the used table
+                    tables.remove(maxIdx);
+                    values.remove(maxIdx);
+                    // update the root with the new right
+                    rootOperator = new JoinOperator(rootOperator, rightOperator, whereExpression);
+                }
+
+                // in the case that the projection is '*', we need to reorder
+                // therefore, we use all the tables' columns to expand the projection to include
+                // them all
+                if (select.getSelectItem(0).getExpression() instanceof AllColumns) {
+                    expandedItems = new ArrayList<>();
+                    // iterate all tables with initial order
+                    for (FromItem table : initialJoinOrder) {
+                        // add all their columns to a new list of select items that will be used later
+                        List<Column> columns = catalog.getAllColumns((Table) table);
+                        for (Column column : columns) {
+                            SelectItem<?> selectItem = new SelectItem<>(column);
+                            expandedItems.add(selectItem);
+                        }
+                    }
+                }
+                // if no joins are present, we simply create the root operator from the FromItem
+            } else {
+                rootOperator = new ScanOperator(select.getFromItem(), this.catalog);
+                if (earlyProjection) {
+                    rootOperator = new ProjectionOperator(rootOperator, selectItems);
+                }
+                if (whereExpression != null) {
+                    rootOperator = new SelectOperator(rootOperator, whereExpression);
                 }
             }
 
@@ -206,7 +283,7 @@ public class QueryInterpreter {
             // cases need to be handled
             Function sumFunction = null;
             // Look of a SUM function in the SELECT items
-            for (SelectItem<?> s : select.getSelectItems()) {
+            for (SelectItem<?> s : selectItems) {
                 if (s.getExpression() instanceof Function) {
                     sumFunction = (Function) s.getExpression();
                     break;
@@ -222,7 +299,15 @@ public class QueryInterpreter {
             // Optional projection. In the case of '*' the operator handles the tuple
             // appropriately
             if (!earlyProjection) {
-                rootOperator = new ProjectionOperator(rootOperator, select);
+                // if expandedItems is not null, this means that there was a need to reorder
+                // join columns and thus the new expandedItems list is used as the new
+                // Projection blueprint
+                if (expandedItems != null) {
+                    rootOperator = new ProjectionOperator(rootOperator, expandedItems);
+                    // otherwise use the normal selectItems
+                } else {
+                    rootOperator = new ProjectionOperator(rootOperator, selectItems);
+                }
             }
 
             // Optional order by

@@ -7,14 +7,33 @@
 
 ---
 
-### General Design & Comments
+## General
+
+#### Design & Comments
+
+The code was built using a bottom-up approach. I first created a `TupleElement` class to represent individual elements in the tuple. This class contains data that represent the origin table, possible alias, value etc. Natually, the `Tuple` class contains a list of `TupleElement` instances.
+
+When the `ScanOperator` reads the file contents, it is essentially creating `Tuple` instances that are then return to the child operator.
+
+TODO
 
 #### Known Bugs
 
-- When aliases are declared but not used the WHERE clause does not get executed. This affects Selections, Joins and the join optimization order.
+- When aliases are declared but not used the `WHERE` clause does not get executed. This affects **Selections** and **Joins**.
  
-### Build & Run
-Currently, I have the maven binaries downloaded inside my repository. Therefore, I can use `build.sh` to build the project and `run.sh` to run. `run.sh` simply runs the program using `query0.sql`. 
+#### Debug Mode
+
+Inside `LightDB.java` there is a line of code denoting the debug mode.
+
+```java
+final boolean DEBUG;
+```
+
+If `DEBUG` is set to `true`, the output of the query is shown on standard output.
+If `DEBUG` is `false`, the output is written in the specified file.
+
+#### Build & Run
+Currently, I have the maven binaries downloaded inside my repository. Therefore, I can use `build.sh` to build the project and `run.sh` to run. `run.sh` simply runs the program using `samples/input/query0.sql`. 
 
 ```bash
 build.sh && run.sh
@@ -24,20 +43,11 @@ The `test.sh` script runs the code with all the queries from the `/samples/input
 
 The `compare.sh` script compares the contents of every file in `/samples/output/` to every corresponding file in `/samples/expected_output/`.
 
-### Debug Mode
-
-Inside the `LightDB.java` file there is a line of code denoting the debug mode.
-
-```java
-final boolean DEBUG;
-```
-
-If `DEBUG` is set to `true`, the output of the query is shown on standard output.
-If `DEBUG` is `false`, the output is written in the specified file.
-
 ## Task 1
 
-### Join Strategy
+All operators are complete.
+
+#### Join Strategy
 
 The Join strategy is described in the `QueryInterpreter`, at section of the code where the joins are handled. This section explains that strategy in detail.
 
@@ -72,19 +82,18 @@ Both of these methods are defined in the `QueryInterpreter` class.
 
 ### Optimizations
 
-### Selection Pushdown
+#### Selection Pushdown
 
 Already implemented, exlpain...
 
-### Early Projection
+#### Join Order
+
+Do and explain...
+
+#### Early Projection
 
 Explain...
 
 #### Sort Merge Join
 
 Do and explain...
-
-#### Join Order
-
-Do and explain...
-

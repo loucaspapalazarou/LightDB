@@ -1,2 +1,4 @@
--- SELECT * FROM Sailors S, Boats B, Reserves R WHERE S.A=R.G AND B.D>S.B;
-SELECT * FROM Sailors, Boats, Reserves WHERE Sailors.A=Reserves.G AND Boats.D>Sailors.B;
+-- SELECT * FROM Boats, Sailors, Reserves WHERE Sailors.A=Reserves.G AND Boats.D>Sailors.B AND Reserves.H=10;
+-- SELECT * FROM Boats, Sailors, Reserves WHERE Sailors.A=Reserves.G AND Boats.D>Sailors.B;
+-- SELECT * FROM Sailors S WHERE S.A < 3;
+SELECT * FROM Sailors S, Boats B WHERE S.A <= 3 AND B.D > 102;

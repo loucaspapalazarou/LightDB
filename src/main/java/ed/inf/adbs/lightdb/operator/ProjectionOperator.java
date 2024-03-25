@@ -8,7 +8,6 @@ import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Function;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
 /**
@@ -28,9 +27,9 @@ public class ProjectionOperator extends Operator {
      * @param child  the child operator
      * @param select the PlainSelect statement representing the SQL query
      */
-    public ProjectionOperator(Operator child, PlainSelect select) {
+    public ProjectionOperator(Operator child, List<SelectItem<?>> selectItems) {
         this.child = child;
-        this.selectItems = select.getSelectItems();
+        this.selectItems = selectItems;
         this.needToProccessTuple = true;
 
         for (SelectItem<?> selectItem : this.selectItems) {

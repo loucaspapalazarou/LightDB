@@ -23,8 +23,17 @@ import net.sf.jsqlparser.statement.select.FromItem;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.SelectItem;
 
+/**
+ * This class implements some helper functions for the optimized query plan.
+ */
 public class QueryUtils {
 
+    /**
+     * Extracts columns from the given expression.
+     *
+     * @param expression the expression to extract columns from
+     * @param columns    the list to store the extracted columns
+     */
     private static void extractColumnsFromExpression(Expression expression, List<Column> columns) {
         if (expression instanceof LongValue) {
             return;
@@ -33,29 +42,48 @@ public class QueryUtils {
             columns.add((Column) expression);
             return;
         }
+        // if expression is a binary expression (i.e. AND), recursively extract the left
+        // and right
         extractColumnsFromExpression(((BinaryExpression) expression).getLeftExpression(), columns);
         extractColumnsFromExpression(((BinaryExpression) expression).getRightExpression(), columns);
     }
 
+    /**
+     * Recursive helper for extractColumnsFromExpression
+     *
+     * @param expression the expression to extract columns from
+     * @return list of extracted columns
+     */
     private static List<Column> extractColumnsFromExpression(Expression expression) {
         List<Column> columns = new ArrayList<Column>();
         extractColumnsFromExpression(expression, columns);
         return columns;
     }
 
+    /**
+     * Determines if early projection is possible based on the provided PlainSelect.
+     * The condition for a projection to be possible early, is that the selection
+     * columns are a subset of the projection columns.
+     *
+     * @param select the PlainSelect to check for early projection possibility
+     * @return true if early projection is possible, false otherwise
+     */
     public static boolean isEarlyProjectPossible(PlainSelect select) {
-        // If SUM is present, early projection gets very complicated so we just dont do
-        // it
+        // If SUM is present, early projection gets very complicated so we simply don't
+        // do it
         for (SelectItem<?> s : select.getSelectItems()) {
             if (s.getExpression() instanceof Function) {
                 return false;
             }
         }
 
+        // if '*:, trivially, early projection is possible
         List<SelectItem<?>> projectItems = select.getSelectItems();
         if (projectItems.get(0).getExpression() instanceof AllColumns) {
             return true;
         }
+
+        // get select columns
         Expression whereExpression = select.getWhere();
         List<Column> selectColumns;
         if (whereExpression != null) {
@@ -64,13 +92,13 @@ public class QueryUtils {
             selectColumns = new ArrayList<>();
         }
 
-        // NOW CHECK FOR SUBSET
-        // select <<< project
+        // get project columns
         Set<Column> projectColumns = new HashSet<>();
         for (SelectItem<?> selectItem : projectItems) {
             projectColumns.add((Column) selectItem.getExpression());
         }
 
+        // Now check for subset: select columns <subset of> project columns
         boolean found = false;
         for (Column c1 : selectColumns) {
             found = false;
@@ -86,6 +114,15 @@ public class QueryUtils {
         return true;
     }
 
+    /**
+     * Updates table values based on the comparison operator that calculate how
+     * selective selection is on each table
+     *
+     * @param operator the comparison operator
+     * @param value    the value to update
+     * @param tables   list of tables
+     * @param values   list of values
+     */
     private static void updateTableValues(ComparisonOperator operator, int value, ArrayList<FromItem> tables,
             ArrayList<Integer> values) {
         Expression left = operator.getLeftExpression();
@@ -94,7 +131,8 @@ public class QueryUtils {
         FromItem fromItem;
         Alias alias;
         if (!(left instanceof LongValue)) {
-            // manip table
+            // go thourgh all elements and increment the one we want, also handle possible
+            // alias
             for (int i = 0; i < tables.size(); i++) {
                 fromItem = tables.get(i);
                 t1 = ((Column) left).getTable().getFullyQualifiedName();
@@ -110,7 +148,8 @@ public class QueryUtils {
             }
         }
         if (!(right instanceof LongValue)) {
-            // manip table
+            // go thourgh all elements and increment the one we want, also handle possible
+            // alias
             for (int i = 0; i < tables.size(); i++) {
                 fromItem = tables.get(i);
                 t1 = ((Column) left).getTable().getFullyQualifiedName();
@@ -127,12 +166,20 @@ public class QueryUtils {
         }
     }
 
-    // find which tables are most affected by the where condition
+    /**
+     * Calculates the join selectivity of tables based on the provided where
+     * expression.
+     *
+     * @param tables          list of tables
+     * @param values          list of values
+     * @param whereExpression the where expression
+     */
     public static void calculateJoinSelectivityOfTables(ArrayList<FromItem> tables, ArrayList<Integer> values,
             Expression whereExpression) {
         if (whereExpression == null) {
             return;
         }
+        // inequalities count of 1 and equality for 2 because its more selective
         if (whereExpression instanceof ComparisonOperator) {
             boolean gt = whereExpression instanceof GreaterThan || whereExpression instanceof GreaterThanEquals;
             boolean mt = whereExpression instanceof MinorThan || whereExpression instanceof MinorThanEquals;
@@ -146,10 +193,10 @@ public class QueryUtils {
             updateTableValues((ComparisonOperator) whereExpression, value, tables, values);
             return;
         }
+        // in the case of binary expression, recursively evaluate
         if (whereExpression instanceof BinaryExpression) {
             calculateJoinSelectivityOfTables(tables, values, ((BinaryExpression) whereExpression).getLeftExpression());
             calculateJoinSelectivityOfTables(tables, values, ((BinaryExpression) whereExpression).getRightExpression());
         }
     }
-
 }

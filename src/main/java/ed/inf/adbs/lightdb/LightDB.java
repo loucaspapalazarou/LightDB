@@ -41,8 +41,6 @@ public class LightDB {
 			queryPlan = queryInterpreter.createQueryPlan(inputFile);
 		}
 
-		// QueryPlan
-
 		// if the debug flag is set to true, the query plan will be evaluated
 		// with its result being dumped in stdout. Otherwise it will be stored
 		// in the specified output file

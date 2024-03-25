@@ -17,9 +17,11 @@ When the `ScanOperator` reads the file contents, it is essentially creating `Tup
 
 TODO
 
-#### Known Bugs
+#### Bugs
 
 - When aliases are declared but not used the `WHERE` clause does not get executed. This affects **Selections** and **Joins**.
+
+That said, the code may contain more bugs triggered with edge cases. If that happens please do try to run the query without optimizations (see section **'Task 2'**).  
  
 #### Debug Mode
 
@@ -82,18 +84,17 @@ Both of these methods are defined in the `QueryInterpreter` class.
 
 ### Optimizations
 
-#### Selection Pushdown
+#### (Built-in) Selection Pushdown
 
-Already implemented, exlpain...
+One way we can improve performance, is by performing selections before joining the tables. The way the system is built by default operates this way, in order to avoid cross product of tables and filtering afterwards. Thus, this optimization is baked in the system by the assignment definition.
 
-#### Join Order
+#### (Implemented) Join Order
 
-Do and explain...
+We can drastically decrease the number of intermediary tuples by manipulating the join order and joining tables with more contraints. However, it would not be very feasible to try and join tables based on their common condition because that might not be the case as the selection can be from any table. For this reason, a heuristic system can be considered very effective. The Join order is handled like so: The `WHERE` clause is analyzed and a value is assigned to each table based of how selective the expressions in WHERE are. Each inequality (>, <, >=, <=, !=) gets a value of 1 and the equality (=) a value of 2. The value of each table is added up and we end up with an estimate on the selectivity of the query based on tables. We then perform the joins in descending order of table selectiviity. This approach is a heuristic way to minimize the intermideate tuples because of the fact that Selection is performed before joins. However, if the query requested all the columns of the resulting tuple, we have an ordering problem because of the join order. To address this, we save a copy of the requested join order and if the selection is of type '*', we simply expand the '*' to all columns of all tables. Then, the projection operator handles the reordering of the tuple elements.
 
-#### Early Projection
+#### (Implemented) Early Projection
+Another possible optimization is performing the projections before joining. Although this will not reduce the number of tuples proccessed, it will reduce the number of columns and essentially save some memory by reducing the "width of the tuples". The query is checked to see whether is possible to perform projection before joins. An early projection is possible if the columns referenced in the `WHERE` expression are a subset of the ones in the `SELECT`. If that is the case, we simply perform the Projection before joining.
 
-Explain...
+#### (Not Implemented) Sort Merge Join
 
-#### Sort Merge Join
-
-Do and explain...
+TODO

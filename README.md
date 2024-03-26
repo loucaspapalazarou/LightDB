@@ -11,15 +11,23 @@
 
 #### Design & Comments
 
-The code was built using a bottom-up approach. I first created a `TupleElement` class to represent individual elements in the tuple. This class contains data that represent the origin table, possible alias, value etc. Natually, the `Tuple` class contains a list of `TupleElement` instances.
+The code was built using a bottom-up approach. I first created a `TupleElement` class to represent individual elements in the tuple. This class contains data that represent the origin table, possible alias, value etc. Naturally, the `Tuple` class contains a list of `TupleElement` instances.
 
-When the `ScanOperator` reads the file contents, it is essentially creating `Tuple` instances that are then return to the child operator.
+When the `ScanOperator` reads the file contents, it is essentially creating `Tuple` instances that are then returned to the child operator.
 
-TODO
+Normal query planning involves the iterative creation of the tree of operators using the `QueryInterpreter` and the result of that is an object of type `QueryPlan`. The `QueryPlan` instance contains the `evaluate` function, that simply dumps the contents of the root operator into a print stream.
+
+The optimized query plan, also uses the `QueryInterpreter`, but now the `createQueryPlanOptimized` function is used instead of the `createQueryPlan` that was used for normal queries. The query is first analyzed to check and implement possible optimizations (join order and early projection) and then continues with the tree building.
 
 #### Bugs
 
-- When aliases are declared but not used the `WHERE` clause does not get executed. This affects **Selections** and **Joins**.
+- When aliases are declared but not used the `WHERE` clause does not get executed. This affects **Selections** and **Joins**. For example the following query would not work:
+
+```sql
+SELECT * FROM Sailors S, Boats B WHERE Sailors.A <= 3 AND Boats.D > 102;
+```
+
+While it's possible to address this issue through modifications, the time invested isn't justified given that these types of queries won't be tested according to the instructions.
 
 That said, the code may contain more bugs triggered with edge cases. If that happens please do try to run the query without optimizations (see section **'Task 2'**).  
  
@@ -62,8 +70,8 @@ The Join strategy is described in the `QueryInterpreter`, at section of the code
 - With every iteration, the left part of the tree is getting deeper and deeper while any new operator is being added to the right of the previous root.
 - When the iteration ends, we have the final root operator which is an instance of a join operator.
 - Each node in the tree is an operator.
-- If no WHERE clause was present, the tree will only consist of scan operators and thus the operation is just a cross product. Otherwise, the tree will consit of select operators on top of scans.
-- The `ExpressionVisitor` class is responsible for evaluating if a tuple is eligible. For a tuple that results from a join, the strategy is to concatenatethe left and right tuple and pass it to the `ExpressionVisitor`. The WHERE condition is evaluated for the new concatenated tuple, and if it passes, then the new tuple is valid and is returned.
+- If no WHERE clause was present, the tree will only consist of scan operators and thus the operation is just a cross product. Otherwise, the tree will consist of select operators on top of scans.
+- The `ExpressionVisitor` class is responsible for evaluating if a tuple is eligible. For a tuple that results from a join, the strategy is to concatenate the left and right tuple and pass it to the `ExpressionVisitor`. The WHERE condition is evaluated for the new concatenated tuple, and if it passes, then the new tuple is valid and is returned.
 - The join operator keeps track of the current left tuple it is holding. The first one will just be the result of `getNextTuple` on the left child.
 - When `getNextTuple` is called on a join operator, it tries to get a tuple from the right child. If the result is `null`, the right child is reset, and the next tuple if fetched from the left child.
 - The fact that the tree consists of operators that filter out tuples on the way up to the root, ensures that this approach does not compute a cross product and filter the tuples at the end.
@@ -90,11 +98,7 @@ One way we can improve performance, is by performing selections before joining t
 
 #### (Implemented) Join Order
 
-We can drastically decrease the number of intermediary tuples by manipulating the join order and joining tables with more contraints. However, it would not be very feasible to try and join tables based on their common condition because that might not be the case as the selection can be from any table. For this reason, a heuristic system can be considered very effective. The Join order is handled like so: The `WHERE` clause is analyzed and a value is assigned to each table based of how selective the expressions in WHERE are. Each inequality (>, <, >=, <=, !=) gets a value of 1 and the equality (=) a value of 2. The value of each table is added up and we end up with an estimate on the selectivity of the query based on tables. We then perform the joins in descending order of table selectiviity. This approach is a heuristic way to minimize the intermideate tuples because of the fact that Selection is performed before joins. However, if the query requested all the columns of the resulting tuple, we have an ordering problem because of the join order. To address this, we save a copy of the requested join order and if the selection is of type '*', we simply expand the '*' to all columns of all tables. Then, the projection operator handles the reordering of the tuple elements.
+We can drastically decrease the number of intermediary tuples by manipulating the join order and joining tables with more contraints. However, it would not be very feasible to try and join tables based on their common condition because that might not be the case as the selection can be from any table. For this reason, a heuristic system can be considered very effective. The Join order is handled like so: The `WHERE` clause is analyzed and a value is assigned to each table based of how selective the expressions in WHERE are. Each inequality (>, <, >=, <=, !=) gets a value of 1 and the equality (=) a value of 2. The value of each table is added up and we end up with an estimate on the selectivity of the query based on tables. We then perform the joins in descending order of table selectiviity. This approach is a heuristic way to minimize the intermediate tuples because of the fact that Selection is performed before joins. However, if the query requested all the columns of the resulting tuple, we have an ordering problem because of the join order. To address this, we save a copy of the requested join order and if the selection is of type '*', we simply expand the '*' to all columns of all tables. Then, the projection operator handles the reordering of the tuple elements.
 
 #### (Implemented) Early Projection
-Another possible optimization is performing the projections before joining. Although this will not reduce the number of tuples proccessed, it will reduce the number of columns and essentially save some memory by reducing the "width of the tuples". The query is checked to see whether is possible to perform projection before joins. An early projection is possible if the columns referenced in the `WHERE` expression are a subset of the ones in the `SELECT`. If that is the case, we simply perform the Projection before joining.
-
-#### (Not Implemented) Sort Merge Join
-
-TODO
+Another possible optimization is performing the projections before joining. Although this will not reduce the number of tuples processed, it will reduce the number of columns and essentially save some memory by reducing the "width of the tuples". The query is checked to see whether is possible to perform projection before joins. An early projection is possible if the columns referenced in the `WHERE` expression are a subset of the ones in the `SELECT`. If that is the case, we simply perform the Projection before joining.

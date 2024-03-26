@@ -20,7 +20,7 @@ public class LightDB {
 			return;
 		}
 
-		final boolean DEBUG = false;
+		final boolean DEBUG = true;
 		final boolean OPTIMIZED = true;
 
 		String databaseDir = args[0];

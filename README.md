@@ -54,6 +54,7 @@ The `test.sh` script runs the code with all the queries from the `/samples/input
 The `compare.sh` script compares the contents of every file in `/samples/output/` to every corresponding file in `/samples/expected_output/`.
 
 ## Task 1
+*"Implement the LightDB system, operators and driver code"*
 
 All operators are complete.
 
@@ -78,6 +79,7 @@ The Join strategy is described in the `QueryInterpreter`, at section of the code
 - It is also a `left-deep` tree because any new operator is placed as the right child of the root operator and the previous root as the left.
 
 ## Task 2
+*"Optimize the system and justify the correctness of the optimizations"*
 
 To turn on the optimizations, a flag is defined in `LightDB.java`.
 
@@ -98,7 +100,7 @@ One way we can improve performance, is by performing selections before joining t
 
 #### (Implemented) Join Order
 
-We can drastically decrease the number of intermediary tuples by manipulating the join order and joining tables with more constraints. However, it would not be very feasible to try and join tables based on their common condition because that might not be the case as the selection can be from any table. For this reason, a heuristic system can be considered very effective. The Join order is handled like so: The `WHERE` clause is analyzed and a value is assigned to each table based of how selective the expressions in WHERE are. Each inequality (>, <, >=, <=, !=) gets a value of 1 and the equality (=) a value of 2. The value of each table is added up and we end up with an estimate on the selectivity of the query based on tables. We then perform the joins in descending order of table selectiviity. This approach is a heuristic way to minimize the intermediate tuples because of the fact that Selection is performed before joins. However, if the query requested all the columns of the resulting tuple, we have an ordering problem because of the join order. To address this, we save a copy of the requested join order and if the selection is of type '*', we simply expand the '*' to all columns of all tables. Then, the projection operator handles the reordering of the tuple elements.
+We can drastically decrease the number of intermediary tuples by manipulating the join order and joining tables with more constraints. However, it would not be very feasible to try and join tables based on their common condition because that might not be the case as the selection can be from any table. For this reason, a heuristic system can be considered very effective. The Join order is handled like so: The `WHERE` clause is analyzed and a value is assigned to each table based of how selective the expressions in WHERE are. Each inequality (>, <, >=, <=, !=) gets a value of 1 and the equality (=) a value of 2. The value of each table is added up and we end up with an estimate on the selectivity of the query based on tables. We then perform the joins in descending order of table selectiviity. This approach is a heuristic way to minimize the intermediate tuples because of the fact that Selection is performed before joins. However, if the query requested all the columns of the resulting tuple, we have an ordering problem because of the join order. To address this, we save a copy of the requested join order and if the selection is of type '\*', we simply expand the '\*' to all columns of all tables. Then, the projection operator handles the reordering of the tuple elements.
 
 This optimization is correct because the join order does not matter in the correctness of a query result. Thus, changing it will still yield the correct output, given that we rearrange the column order to match the requested column order.
 
